@@ -54,6 +54,10 @@ const branchElement = [
   "thuy",
 ] as const;
 
+// Giữ nguyên chuỗi đang nhập, kể cả chuỗi rỗng hoặc số 0 ở đầu.
+const numericText = (value: string, length: number) =>
+  value.replace(/[^0-9]/g, "").slice(0, length);
+
 const dateText = (d: { day: number; month: number; year: number }) =>
   `${String(d.day).padStart(2, "0")}/${String(d.month).padStart(2, "0")}/${d.year}`;
 
@@ -368,6 +372,14 @@ function FilterOption({
 
 export default function Home() {
   const [draft, setDraft] = useState<BirthInput>(defaultInput);
+  // Giu du lieu dang nhap o dang chuoi de co the xoa trang (khong tu nhay ve 0).
+  // Chuyen thanh number DUY NHAT khi bam nut lap la so.
+  const [dayText, setDayText] = useState(String(defaultInput.day));
+  const [yearText, setYearText] = useState(String(defaultInput.year));
+  const [viewYearText, setViewYearText] = useState(
+    String(defaultInput.viewYear),
+  );
+  const [formError, setFormError] = useState("");
   const [submitted, setSubmitted] = useState<BirthInput>(defaultInput);
   // null = no manual override. In this state, show the three lines from Mệnh.
   // Selecting another palace overrides Mệnh; selecting it again returns to Mệnh.
@@ -499,10 +511,37 @@ export default function Home() {
   };
   const submit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setSubmitted({ ...draft });
+    const day = Number(dayText);
+    const year = Number(yearText);
+    const viewYear = Number(viewYearText);
+
+    if (!/^[0-9]{1,2}$/.test(dayText) || day < 1 || day > 31) {
+      setFormError("Ngày sinh phải nằm trong khoảng 1–31.");
+      return;
+    }
+    if (!/^[0-9]{4}$/.test(yearText) || year < 1900 || year > 2100) {
+      setFormError("Năm sinh phải gồm 4 chữ số, từ 1900 đến 2100.");
+      return;
+    }
+    if (
+      !/^[0-9]{4}$/.test(viewYearText) ||
+      viewYear < 1900 ||
+      viewYear > 2100
+    ) {
+      setFormError("Năm xem hạn phải gồm 4 chữ số, từ 1900 đến 2100.");
+      return;
+    }
+    setFormError("");
+    const nextInput: BirthInput = { ...draft, day, year, viewYear };
+    setDraft(nextInput);
+    setSubmitted(nextInput);
     setSelected(null);
   };
   const resetAll = () => {
+    setFormError("");
+    setDayText(String(defaultInput.day));
+    setYearText(String(defaultInput.year));
+    setViewYearText(String(defaultInput.viewYear));
     setDraft({ ...defaultInput });
     setSubmitted({ ...defaultInput });
     setSelected(null);
@@ -588,12 +627,16 @@ export default function Home() {
               <label className="date-part">
                 <span className="sr-only">Ngày sinh</span>
                 <input
-                  type="number"
+                  type="text"
+                  inputMode="numeric"
+                  autoComplete="off"
+                  maxLength={2}
                   aria-label="Ngày sinh"
-                  min={1}
-                  max={31}
-                  value={draft.day}
-                  onChange={(event) => set("day", Number(event.target.value))}
+                  value={dayText}
+                  onChange={(event) => {
+                    setDayText(numericText(event.target.value, 2));
+                    setFormError("");
+                  }}
                   required
                 />
                 <small>Ngày</small>
@@ -616,12 +659,16 @@ export default function Home() {
               <label className="date-part">
                 <span className="sr-only">Năm sinh</span>
                 <input
-                  type="number"
+                  type="text"
+                  inputMode="numeric"
+                  autoComplete="off"
+                  maxLength={4}
                   aria-label="Năm sinh"
-                  min={1900}
-                  max={2100}
-                  value={draft.year}
-                  onChange={(event) => set("year", Number(event.target.value))}
+                  value={yearText}
+                  onChange={(event) => {
+                    setYearText(numericText(event.target.value, 4));
+                    setFormError("");
+                  }}
                   required
                 />
                 <small>Năm</small>
@@ -667,11 +714,16 @@ export default function Home() {
           <label className="field field--view-year">
             <span>Năm xem hạn</span>
             <input
-              type="number"
-              min={1900}
-              max={2100}
-              value={draft.viewYear}
-              onChange={(event) => set("viewYear", Number(event.target.value))}
+              type="text"
+              inputMode="numeric"
+              autoComplete="off"
+              maxLength={4}
+              aria-label="Năm xem hạn"
+              value={viewYearText}
+              onChange={(event) => {
+                setViewYearText(numericText(event.target.value, 4));
+                setFormError("");
+              }}
               required
             />
           </label>
@@ -693,6 +745,12 @@ export default function Home() {
             </label>
           )}
         </form>
+        {formError && (
+          <div className="error-box" role="alert">
+            <Icon name="info" size={18} />
+            {formError}
+          </div>
+        )}
         <div className="form-note">
           <Icon name="info" size={15} />
           <span>
