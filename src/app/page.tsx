@@ -391,6 +391,10 @@ export default function Home() {
   const [fontSize, setFontSize] = useState<"small" | "medium" | "large">(
     "medium",
   );
+  // Chỉ trên điện thoại: ưu tiên xem đủ 12 cung, nhưng cho phép chuyển sang đọc đầy đủ.
+  const [mobileView, setMobileView] = useState<"overview" | "detail">(
+    "overview",
+  );
 
   const result = useMemo(() => {
     try {
@@ -495,6 +499,7 @@ export default function Home() {
     activeBranch,
     chart,
     fontSize,
+    mobileView,
     showMain,
     showExtra,
     showCycles,
@@ -550,6 +555,7 @@ export default function Home() {
     setShowCycles(false);
     setShowAnnual(true);
     setFontSize("medium");
+    setMobileView("overview");
   };
 
   return (
@@ -847,6 +853,38 @@ export default function Home() {
                   </button>
                 ))}
               </div>
+              <div
+                className="mobile-view-switch"
+                role="group"
+                aria-label="Chế độ xem lá số trên điện thoại"
+              >
+                <span className="mobile-view-switch__label">
+                  Lá số trên điện thoại
+                </span>
+                <div className="mobile-view-switch__buttons">
+                  <button
+                    type="button"
+                    className={`mobile-view-button ${mobileView === "overview" ? "mobile-view-button--active" : ""}`}
+                    aria-pressed={mobileView === "overview"}
+                    onClick={() => setMobileView("overview")}
+                  >
+                    Toàn cảnh 12 cung
+                  </button>
+                  <button
+                    type="button"
+                    className={`mobile-view-button ${mobileView === "detail" ? "mobile-view-button--active" : ""}`}
+                    aria-pressed={mobileView === "detail"}
+                    onClick={() => setMobileView("detail")}
+                  >
+                    Xem chi tiết
+                  </button>
+                </div>
+                <p className="mobile-view-note">
+                  {mobileView === "overview"
+                    ? "Thu gọn để thấy cả 12 cung. Chạm cung để xem toàn bộ phụ tinh và sao lưu trong chú thích bên dưới."
+                    : "Hiện đầy đủ sao với chữ lớn hơn. Vuốt ngang để đọc từng cung."}
+                </p>
+              </div>
               <label className="mobile-palace-picker">
                 <span>Chọn cung</span>
                 <select
@@ -887,14 +925,19 @@ export default function Home() {
                 </span>
               </div>
               <div
-                className="chart-scroll"
+                className={`chart-scroll chart-scroll--${mobileView}`}
                 role="region"
-                aria-label="Địa bàn 12 cung Tử Vi, kéo ngang để xem trên màn hình nhỏ"
+                aria-label={
+                  mobileView === "overview"
+                    ? "Địa bàn 12 cung, chế độ toàn cảnh trên điện thoại"
+                    : "Địa bàn 12 cung, vuốt ngang trên điện thoại để đọc chi tiết"
+                }
                 tabIndex={0}
               >
                 <div
                   className="chart-grid"
                   data-font-size={fontSize}
+                  data-mobile-view={mobileView}
                   ref={boardRef}
                 >
                   {BOARD_POSITIONS.map(({ branch, row, col }) => (
@@ -1083,6 +1126,43 @@ export default function Home() {
                   <strong>
                     {chosen.daiHan?.from}–{chosen.daiHan?.to} tuổi
                   </strong>
+                </div>
+                <div className="detail-fact detail-fact--mobile-stars">
+                  <span className="detail-label">
+                    DANH SÁCH SAO ĐẦY ĐỦ CỦA CUNG
+                  </span>
+                  {chosen.extra.length > 0 && (
+                    <div className="detail-star-row">
+                      <b>Phụ tinh</b>
+                      <StarGroup
+                        stars={chosen.extra}
+                        className="star-group--detail"
+                      />
+                    </div>
+                  )}
+                  {chosen.cycles.length > 0 && (
+                    <div className="detail-star-row">
+                      <b>Vòng sao</b>
+                      <StarGroup
+                        stars={chosen.cycles}
+                        className="star-group--detail"
+                      />
+                    </div>
+                  )}
+                  {chosen.annual.length > 0 && (
+                    <div className="detail-star-row">
+                      <b>Sao lưu</b>
+                      <StarGroup
+                        stars={chosen.annual}
+                        className="star-group--detail"
+                      />
+                    </div>
+                  )}
+                  {chosen.extra.length === 0 &&
+                    chosen.cycles.length === 0 &&
+                    chosen.annual.length === 0 && (
+                      <span>Không có sao bổ sung trong dữ liệu hiện tại.</span>
+                    )}
                 </div>
                 <div className="detail-fact detail-fact--wide">
                   <span className="detail-label">TAM HỢP · 2 CUNG LIÊN HỆ</span>
