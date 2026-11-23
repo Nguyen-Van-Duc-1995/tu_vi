@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, type CSSProperties, type FormEvent, type ReactNode } from "react";
+import { useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type FormEvent, type ReactNode } from "react";
 import {
   BOARD_POSITIONS,
   BRANCHES,
@@ -91,15 +91,13 @@ function StarGroup({ stars, className = "" }: { stars: Star[]; className?: strin
 }
 
 function PalaceCell({
-  palace, row, col, active, related, opposite, isCurrentDaiHan, isCurrentTieuHan,
+  palace, row, col, active, isCurrentDaiHan, isCurrentTieuHan,
   onSelect, showMain, showExtra, showCycles, showAnnual,
 }: {
   palace: Palace;
   row: number;
   col: number;
   active: boolean;
-  related: boolean;
-  opposite: boolean;
   isCurrentDaiHan: boolean;
   isCurrentTieuHan: boolean;
   onSelect: () => void;
@@ -111,7 +109,8 @@ function PalaceCell({
   const style: CSSProperties = { gridRow: row, gridColumn: col };
   return (
     <section
-      className={`palace ${active ? "palace--selected" : ""} ${related ? "palace--related" : ""} ${opposite ? "palace--opposite" : ""}`}
+      className="palace"
+      data-branch={palace.branchIndex}
       style={style}
       data-element={branchElement[palace.branchIndex]}
       onClick={onSelect}
@@ -171,9 +170,43 @@ function PalaceCell({
       <div className="palace-footer">
         <span>ĐẠI HẠN</span>
         <strong>{palace.daiHan?.from}–{palace.daiHan?.to} tuổi</strong>
-        {active && <span className="palace-current-dot" title="Cung đang được chọn" />}
       </div>
     </section>
+  );
+}
+
+type LinePoint = { x: number; y: number };
+type ConnectionKind = "tam-hop" | "xung-chieu";
+type ConnectionSegment = {
+  branch: number;
+  kind: ConnectionKind;
+  x1: number;
+  y1: number;
+  x2: number;
+  y2: number;
+};
+type ConnectionGeometry = { width: number; height: number; lines: ConnectionSegment[] };
+
+function PalaceConnections({ geometry }: { geometry: ConnectionGeometry | null }) {
+  if (!geometry || geometry.lines.length === 0) return null;
+  return (
+    <svg
+      className="palace-connections"
+      viewBox={`0 0 ${geometry.width} ${geometry.height}`}
+      preserveAspectRatio="none"
+      aria-hidden="true"
+      focusable="false"
+    >
+      {geometry.lines.map((line) => (
+        <g key={`${line.kind}-${line.branch}`}>
+          <line className="palace-connection-halo" x1={line.x1} y1={line.y1} x2={line.x2} y2={line.y2} />
+          <line
+            className={`palace-connection ${line.kind === "tam-hop" ? "palace-connection--tam" : "palace-connection--xung"}`}
+            x1={line.x1} y1={line.y1} x2={line.x2} y2={line.y2}
+          />
+        </g>
+      ))}
+    </svg>
   );
 }
 
@@ -194,7 +227,9 @@ function FilterOption({ label, checked, onChange }: { label: string; checked: bo
 export default function Home() {
   const [draft, setDraft] = useState<BirthInput>(defaultInput);
   const [submitted, setSubmitted] = useState<BirthInput>(defaultInput);
-  const [selected, setSelected] = useState<number>(2);
+  // null = no manual override. In this state, show the three lines from Mệnh.
+  // Selecting another palace overrides Mệnh; selecting it again returns to Mệnh.
+  const [selected, setSelected] = useState<number | null>(null);
   const [showMain, setShowMain] = useState(true);
   const [showExtra, setShowExtra] = useState(true);
   const [showCycles, setShowCycles] = useState(false);
@@ -210,24 +245,89 @@ export default function Home() {
   }, [submitted]);
 
   const chart = result.chart;
-  const rel = relatedPalaces(selected);
-  const chosen = chart?.palaces[selected];
+  const activeBranch = chart ? (selected ?? chart.menh) : null;
+  const boardRef = useRef<HTMLDivElement>(null);
+  const [connectionGeometry, setConnectionGeometry] = useState<ConnectionGeometry | null>(null);
+
+  useLayoutEffect(() => {
+    const board = boardRef.current;
+    if (activeBranch === null || !board || !chart) {
+      setConnectionGeometry(null);
+      return;
+    }
+
+    // The row height can change when stars are filtered. Always measure actual
+    // cell centers rather than assuming a geometrically uniform 4x4 board.
+    const measure = () => {
+      const boardBounds = board.getBoundingClientRect();
+      const getCenter = (branch: number): LinePoint | null => {
+        const palace = board.querySelector<HTMLElement>(`[data-branch="${branch}"]`);
+        if (!palace) return null;
+        const rect = palace.getBoundingClientRect();
+        return {
+          x: rect.left - boardBounds.left - board.clientLeft + rect.width / 2,
+          y: rect.top - boardBounds.top - board.clientTop + rect.height / 2,
+        };
+      };
+
+      const from = getCenter(activeBranch);
+      if (!from) return;
+      const related = relatedPalaces(activeBranch);
+      const destinations: { branch: number; kind: ConnectionKind }[] = [
+        ...related.tamHop.map((branch) => ({ branch, kind: "tam-hop" as const })),
+        { branch: related.xung, kind: "xung-chieu" },
+      ];
+      const lines = destinations.flatMap(({ branch, kind }) => {
+        const to = getCenter(branch);
+        if (!to) return [];
+        const dx = to.x - from.x;
+        const dy = to.y - from.y;
+        const distance = Math.hypot(dx, dy);
+        if (distance === 0) return [];
+        // Shorten ends slightly so strokes do not obscure the stars in a cell.
+        const trim = Math.min(78, distance / 4);
+        const ux = dx / distance;
+        const uy = dy / distance;
+        return [{
+          branch,
+          kind,
+          x1: from.x + ux * trim,
+          y1: from.y + uy * trim,
+          x2: to.x - ux * trim,
+          y2: to.y - uy * trim,
+        }];
+      });
+      setConnectionGeometry({ width: board.clientWidth, height: board.clientHeight, lines });
+    };
+
+    measure();
+    const observer = typeof ResizeObserver !== "undefined" ? new ResizeObserver(measure) : null;
+    if (observer) {
+      observer.observe(board);
+      board.querySelectorAll<HTMLElement>(".palace").forEach((palace) => observer.observe(palace));
+    }
+    window.addEventListener("resize", measure);
+    return () => {
+      observer?.disconnect();
+      window.removeEventListener("resize", measure);
+    };
+  }, [activeBranch, chart, fontSize, showMain, showExtra, showCycles, showAnnual]);
+
+  const selectPalace = (branch: number) => {
+    setSelected((current) => (current === branch || branch === chart?.menh ? null : branch));
+  };
   const set = <K extends keyof BirthInput>(field: K, value: BirthInput[K]) => {
     setDraft((prev) => ({ ...prev, [field]: value }));
   };
   const submit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setSubmitted({ ...draft });
-    try {
-      setSelected(createTuViChart(draft).menh);
-    } catch {
-      // Lỗi hợp lệ của đầu vào được hiển thị tại result.error.
-    }
+    setSelected(null);
   };
   const resetAll = () => {
     setDraft({ ...defaultInput });
     setSubmitted({ ...defaultInput });
-    setSelected(2);
+    setSelected(null);
     setShowMain(true);
     setShowExtra(true);
     setShowCycles(false);
@@ -354,7 +454,11 @@ export default function Home() {
               </div>
               <label className="mobile-palace-picker">
                 <span>Chọn cung</span>
-                <select value={selected} onChange={(event) => setSelected(Number(event.target.value))}>
+                <select value={selected ?? ""} onChange={(event) => {
+                  const value = event.target.value;
+                  setSelected(value === "" || Number(value) === chart.menh ? null : Number(value));
+                }}>
+                  <option value="">Mặc định: cung Mệnh ({BRANCHES[chart.menh]})</option>
                   {chart.palaces.map((palace) => <option key={palace.branchIndex} value={palace.branchIndex}>{palace.house} · {palace.branch}</option>)}
                 </select>
               </label>
@@ -363,25 +467,24 @@ export default function Home() {
             <div className="chart-frame">
               <div className="board-caption">
                 <div><span className="board-caption__mark">✦</span><strong>Địa bàn Tử Vi</strong><span className="board-caption__sub">ĐỊA CHI CỐ ĐỊNH · NỀN MÀU NGŨ HÀNH</span></div>
-                <span className="board-instruction">Chọn một cung để xem tam phương tứ chính <Icon name="chevron" size={15} /></span>
+                <span className="board-instruction">Mặc định kẻ từ cung Mệnh; bấm cung khác để đổi đường nối <Icon name="chevron" size={15} /></span>
               </div>
               <div className="chart-scroll" role="region" aria-label="Địa bàn 12 cung Tử Vi, kéo ngang để xem trên màn hình nhỏ" tabIndex={0}>
-                <div className="chart-grid" data-font-size={fontSize}>
+                <div className="chart-grid" data-font-size={fontSize} ref={boardRef}>
                   {BOARD_POSITIONS.map(({ branch, row, col }) => (
                     <PalaceCell
                       key={branch}
                       palace={chart.palaces[branch]}
                       row={row}
                       col={col}
-                      active={selected === branch}
-                      related={rel.tamHop.includes(branch)}
-                      opposite={rel.xung === branch}
+                      active={activeBranch === branch}
                       isCurrentDaiHan={chart.currentDaiHan === branch}
                       isCurrentTieuHan={chart.currentTieuHan === branch}
-                      onSelect={() => setSelected(branch)}
+                      onSelect={() => selectPalace(branch)}
                       showMain={showMain} showExtra={showExtra} showCycles={showCycles} showAnnual={showAnnual}
                     />
                   ))}
+                  <PalaceConnections geometry={connectionGeometry} />
                   <section className="center-panel" style={{ gridColumn: "2 / span 2", gridRow: "2 / span 2" }} aria-label="Thiên bàn và thông tin lá số">
                     <div className="center-ornament" aria-hidden="true"><span>✦</span></div>
                     <div className="center-eyebrow">TỬ VI ĐẨU SỐ · TAM HỢP NAM PHÁI</div>
@@ -406,7 +509,7 @@ export default function Home() {
                       <CenterInfo title="Thân cư" value={chart.palaces[chart.than].house} />
                       {chart.shiftedLateZi && <CenterInfo title="Ngày dùng để an số" value={dateText(chart.solar)} />}
                     </dl>
-                    <p className="center-note"><Icon name="info" size={13} /> Chạm vào một cung bất kỳ để xem chi tiết bên dưới.</p>
+                    <p className="center-note"><Icon name="info" size={13} /> Mặc định nối từ cung Mệnh. Chạm cung khác để xem tam hợp và xung chiếu; chạm lại để trở về Mệnh.</p>
                   </section>
                 </div>
               </div>
@@ -417,9 +520,8 @@ export default function Home() {
                   <span className="typography-legend__annual">L. Thiên Mã</span><span>Sao lưu</span>
                 </div>
                 <div className="legend">
-                  <span><i className="legend-dot legend-dot--selected" /> Đang chọn</span>
-                  <span><i className="legend-dot legend-dot--tam" /> Tam hợp</span>
-                  <span><i className="legend-dot legend-dot--xung" /> Xung chiếu</span>
+                  <span><i className="legend-line legend-line--tam" /> Tam hợp (2 đường)</span>
+                  <span><i className="legend-line legend-line--xung" /> Xung chiếu (1 đường)</span>
                   <span><i className="legend-dot legend-dot--annual" /> Sao lưu niên</span>
                 </div>
                 <span className="swipe-hint">↔ Kéo ngang để xem toàn bộ lá số</span>
@@ -427,41 +529,6 @@ export default function Home() {
             </div>
           </section>
 
-          {chosen && (
-            <section className="detail-panel" aria-labelledby="detail-title">
-              <div className="detail-intro">
-                <span className="section-index">THÔNG TIN CUNG ĐƯỢC CHỌN</span>
-                <h2 id="detail-title">Cung {chosen.house}</h2>
-                <span className="detail-location">{chosen.stem} {chosen.branch}{chosen.isThan ? " · Cung Thân" : ""}</span>
-                <p>Khám phá vị trí, chính tinh và các cung liên hệ trong tam phương tứ chính.</p>
-                {selected !== chart.menh && (
-                  <button className="back-to-menh" type="button" onClick={() => setSelected(chart.menh)}>Về cung Mệnh <Icon name="arrow" size={15} /></button>
-                )}
-              </div>
-              <div className="detail-content">
-                <div className="detail-fact detail-fact--large">
-                  <span className="detail-label">CHÍNH TINH</span>
-                  <strong className="detail-main-stars">{chosen.main.length ? chosen.main.map((star) => star.name).join(" · ") : "Vô chính diệu"}</strong>
-                </div>
-                <div className="detail-fact">
-                  <span className="detail-label">ĐẠI HẠN</span>
-                  <strong>{chosen.daiHan?.from}–{chosen.daiHan?.to} tuổi</strong>
-                </div>
-                <div className="detail-fact detail-fact--wide">
-                  <span className="detail-label">TAM HỢP · 2 CUNG LIÊN HỆ</span>
-                  <div className="related-links">
-                    {rel.tamHop.map((idx) => <button key={idx} type="button" onClick={() => setSelected(idx)} className="related-link related-link--tam">{chart.palaces[idx].house} <small>({BRANCHES[idx]})</small><Icon name="chevron" size={13} /></button>)}
-                  </div>
-                </div>
-                <div className="detail-fact detail-fact--wide">
-                  <span className="detail-label">XUNG CHIẾU · CUNG ĐỐI DIỆN</span>
-                  <div className="related-links">
-                    <button type="button" onClick={() => setSelected(rel.xung)} className="related-link related-link--xung">{chart.palaces[rel.xung].house} <small>({BRANCHES[rel.xung]})</small><Icon name="chevron" size={13} /></button>
-                  </div>
-                </div>
-              </div>
-            </section>
-          )}
         </>
       )}
 

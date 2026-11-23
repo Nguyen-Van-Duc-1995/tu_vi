@@ -1,3 +1,24 @@
+# Cập nhật: Mặc định vẽ tam hợp và xung chiếu từ cung Mệnh
+
+- **Ngay khi mở hoặc an lại lá số**, nếu chưa chọn cung khác, lá số tự vẽ 3 đường từ **cung Mệnh**: 2 đường tới hai cung tam hợp và 1 đường tới cung xung chiếu.
+- Bấm cung khác để xem 3 đường từ cung đó; bấm lại chính cung đang xem để **trở về cung Mệnh**, không ẩn hoàn toàn.
+- Chọn trực tiếp cung Mệnh cũng đưa về trạng thái mặc định. Khôi phục mẫu và an lá số mới đều trở về Mệnh của lá số tương ứng.
+- Ô chọn cung trên điện thoại có lựa chọn **Mặc định: cung Mệnh**.
+- Không đổi CSS, thuật toán an sao, vị trí và màu 12 địa chi.
+
+---
+
+# Ban cap nhat: Noi duong tam hop & xung chieu
+
+- Click 1 cung de ve dung 3 duong trong SVG: 2 duong xanh lien tam hop (chi +4, +8); 1 duong xanh duong dut net den cung xung (+6).
+- Click lại cung đang xem để trở về ba đường từ cung Mệnh; click cung khác để cập nhật.
+- Ban đầu cung Mệnh được chọn mặc định, an sao/reset cũng đưa về cung Mệnh của lá số mới.
+- Khong to vien cho cung tam hop/xung chieu, khong mo panel chi tiet duoi ban do.
+- Do toa do thuc te bang getBoundingClientRect va ResizeObserver de co duong noi dung khi doi co chu / loc sao / viewport. Overlay pointer-events none de click xuyen qua.
+- Khong thay doi lib/tuvi.ts, lib/lunar.ts va vi tri / mau 12 dia chi.
+
+---
+
 # Giao diện Tử Vi Nam phái — địa chi màu đặc, khung vuông
 
 Bản này cập nhật đầy đủ `src/app/page.tsx` và `src/app/globals.css` trên nền phiên bản Typography; **không sửa thuật toán** trong `src/lib/tuvi.ts` và `src/lib/lunar.ts`.
@@ -32,7 +53,7 @@ Dự án đã được nâng cấp **toàn bộ giao diện React/CSS**, không 
 - Địa chi to và đậm; Thiên can nhỏ phía trên; chính tinh nổi bật; phụ tinh hai cột; sao lưu và đại hạn nhỏ hơn.
 - Form nhập liệu chia lưới, tự xuống hàng trên tablet/điện thoại; có nút **Khôi phục mẫu**.
 - Khu Thiên bàn trung tâm hiển thị nhanh **Mệnh / Thân / Cục**, ngày sinh âm–dương, tuổi mụ, đại hạn, năm xem.
-- Chọn cung để tô **cung đang chọn / hai cung tam hợp / cung xung chiếu** bằng đường viền (giữ nguyên màu hành).
+- Chọn cung để kẻ **2 đường tam hợp và 1 đường xung chiếu** (không tô viền các cung).
 - Bật/tắt chính tinh, phụ tinh, vòng sao, sao lưu bằng các chip dễ thao tác.
 - Chọn cung bằng dropdown trên màn hình nhỏ, cuộn ngang địa bàn nhưng vẫn giữ **4×4** và thứ tự địa chi cố định.
 - Nút **In lá số** với CSS in khổ A3 ngang; không cần thư viện UI hoặc icon bổ sung.
