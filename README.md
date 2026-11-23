@@ -1,6 +1,53 @@
+# Giao diện Tử Vi Nam phái — địa chi màu đặc, khung vuông
+
+Bản này cập nhật đầy đủ `src/app/page.tsx` và `src/app/globals.css` trên nền phiên bản Typography; **không sửa thuật toán** trong `src/lib/tuvi.ts` và `src/lib/lunar.ts`.
+
 # Lập lá số Tử Vi Đẩu Số Nam phái (Next.js + React + TypeScript)
 
+## Bản cập nhật giao diện: phân cấp cỡ chữ theo ảnh tham khảo
+
+Phiên bản này tiếp tục bản Modern UI. **Không thay đổi `src/lib/tuvi.ts` hoặc `src/lib/lunar.ts`**, không đổi địa bàn 12 chi hay thuật toán an sao.
+
+- **Chính tinh**: in hoa, đậm, căn giữa phía đầu cung; phụ tinh: hai cột, nhỏ hơn để đọc và quét nhanh.
+- **Sao lưu**: nền xanh nhạt, đặt thành nhóm riêng; **Đại hạn**: nhãn gọn sát đáy cung.
+- **Thiên bàn**: tên lớn nhất, nhãn thông tin nhỏ hơn giá trị; Mệnh/Thân/Cục được làm nổi rõ.
+- Thêm bộ điều khiển `Cỡ chữ → Nhỏ / Vừa / Lớn` nằm ở dải tùy chỉnh hiển thị.
+- Kích thước mặc định **Vừa**: chính tinh 17px, phụ tinh 12px, sao lưu 11px, địa chi 15px, Đại hạn 10px, tên ở thiên bàn 30px. Nhỏ: 15/10.5/10px; Lớn: 19/13.5/12px.
+- Địa bàn 4×4 giữ nguyên khi xem điện thoại, kéo ngang để đọc; chiều rộng cung tự tăng khi chọn chữ Lớn.
+- Kiểm tra giao diện tĩnh tại 390 / 1024 / 1440px, đồng thời kiểm tra không có cung nào bị cắt nội dung ở cả ba mức chữ.
+
+Thay nhanh trong ứng dụng Modern UI có sẵn: `src/app/page.tsx` và `src/app/globals.css`.
+
+---
+
+
 Một ứng dụng Next.js App Router, giao diện 12 địa chi **bất biến** đúng sơ đồ tham khảo. Bộ máy an sao thuần TypeScript, không gọi API và không sử dụng trạng thái React trong tính toán.
+
+## Giao diện mới – phiên bản modern
+
+Dự án đã được nâng cấp **toàn bộ giao diện React/CSS**, không sửa thuật toán âm lịch hoặc an sao ở `src/lib/`.
+
+- Thiết kế **vuông góc hoàn toàn** (border-radius: 0), không bóng đổ hay gradient; màu ngũ hành **đặc** và đường phân cách **đen dày** theo hình mẫu người dùng.
+- Màu cố định theo địa chi: **Tỵ/Ngọ đỏ #da3c3d; Thìn/Mùi/Tuất/Sửu vàng #f3d34c; Dần/Mão xanh lá #6ed36d; Thân/Dậu xám #bfbfbf; Tý/Hợi xanh dương #65c9ee**. Chú ý **Tỵ khác Tý**.
+- Địa chi to và đậm; Thiên can nhỏ phía trên; chính tinh nổi bật; phụ tinh hai cột; sao lưu và đại hạn nhỏ hơn.
+- Form nhập liệu chia lưới, tự xuống hàng trên tablet/điện thoại; có nút **Khôi phục mẫu**.
+- Khu Thiên bàn trung tâm hiển thị nhanh **Mệnh / Thân / Cục**, ngày sinh âm–dương, tuổi mụ, đại hạn, năm xem.
+- Chọn cung để tô **cung đang chọn / hai cung tam hợp / cung xung chiếu** bằng đường viền (giữ nguyên màu hành).
+- Bật/tắt chính tinh, phụ tinh, vòng sao, sao lưu bằng các chip dễ thao tác.
+- Chọn cung bằng dropdown trên màn hình nhỏ, cuộn ngang địa bàn nhưng vẫn giữ **4×4** và thứ tự địa chi cố định.
+- Nút **In lá số** với CSS in khổ A3 ngang; không cần thư viện UI hoặc icon bổ sung.
+- Trình đọc màn hình / bàn phím: label biểu mẫu, focus ring, Enter/Space chọn cung, `prefers-reduced-motion`.
+
+Muốn ghép vào dự án cũ đang có sẵn bộ an sao tương tự, chỉ cần thay:
+
+```text
+src/app/page.tsx
+src/app/globals.css
+```
+
+Các phần còn lại giữ như bản gốc.
+
+**Kiểm chứng trong môi trường dựng:** Kiểm thử `npm run test:core` đạt, kiểm tra cú pháp TSX đạt; dựng giao diện từ JSX/CSS để soát bố cục ở 1440px, 1024px và 390px. Do không kết nối được npm registry nên chưa chạy `npm run build` Next.js đầy đủ; hãy thực hiện `npm install && npm run build` trên máy có kết nối mạng.
 
 ## Chạy thử
 
