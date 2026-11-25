@@ -18,6 +18,7 @@ import {
   type Palace,
   type Star,
 } from "@/lib/tuvi";
+import "./chart-fit.css";
 
 const defaultInput: BirthInput = {
   name: "Nguyễn Hồng Phúc",
@@ -414,8 +415,75 @@ export default function Home() {
     chart && activeBranch !== null ? chart.palaces[activeBranch] : null;
   const related = activeBranch !== null ? relatedPalaces(activeBranch) : null;
   const boardRef = useRef<HTMLDivElement>(null);
+  const chartFrameRef = useRef<HTMLDivElement>(null);
+  const [desktopFit, setDesktopFit] = useState<{
+    scale: number;
+    height: number;
+  } | null>(null);
   const [connectionGeometry, setConnectionGeometry] =
     useState<ConnectionGeometry | null>(null);
+
+  // Desktop: thu nhỏ cả khung lá số, không thu nhỏ form và chú thích bên dưới.
+  useLayoutEffect(() => {
+    const frame = chartFrameRef.current;
+
+    if (!frame || !chart) {
+      setDesktopFit(null);
+      return;
+    }
+
+    const desktop = window.matchMedia("screen and (min-width: 769px)");
+
+    const resizeChart = () => {
+      if (!desktop.matches) {
+        setDesktopFit(null);
+        return;
+      }
+
+      // offsetHeight là chiều cao layout gốc, không bị ảnh hưởng bởi scale().
+      const frameHeight = frame.offsetHeight;
+      if (!frameHeight) {
+        setDesktopFit(null);
+        return;
+      }
+
+      const maxHeight = Math.max(1, Math.floor(window.innerHeight * 0.95));
+      // Chừa 1px để tránh vượt giới hạn do offsetHeight làm tròn số.
+      const naturalHeight = frameHeight + 1;
+
+      if (naturalHeight <= maxHeight) {
+        setDesktopFit(null);
+        return;
+      }
+
+      const scale = maxHeight / naturalHeight;
+      const height = maxHeight;
+
+      setDesktopFit((prev) =>
+        prev?.scale === scale && prev.height === height
+          ? prev
+          : { scale, height },
+      );
+    };
+
+    resizeChart();
+
+    const observer =
+      typeof ResizeObserver !== "undefined"
+        ? new ResizeObserver(resizeChart)
+        : null;
+    observer?.observe(frame);
+
+    // Chiều cao viewport có thể đổi dù chiều cao nội dung không đổi.
+    window.addEventListener("resize", resizeChart);
+    desktop.addEventListener("change", resizeChart);
+
+    return () => {
+      observer?.disconnect();
+      window.removeEventListener("resize", resizeChart);
+      desktop.removeEventListener("change", resizeChart);
+    };
+  }, [chart]);
 
   useLayoutEffect(() => {
     const board = boardRef.current;
@@ -428,6 +496,18 @@ export default function Home() {
     // cell centers rather than assuming a geometrically uniform 4x4 board.
     const measure = () => {
       const boardBounds = board.getBoundingClientRect();
+
+      // Quy đổi tọa độ đã scale về hệ tọa độ gốc của SVG.
+      // SVG sẽ tự thu nhỏ cùng chart-frame, không scale tọa độ hai lần.
+      const scaleX =
+        board.offsetWidth > 0 && boardBounds.width > 0
+          ? boardBounds.width / board.offsetWidth
+          : 1;
+      const scaleY =
+        board.offsetHeight > 0 && boardBounds.height > 0
+          ? boardBounds.height / board.offsetHeight
+          : 1;
+
       const getCenter = (branch: number): LinePoint | null => {
         const palace = board.querySelector<HTMLElement>(
           `[data-branch="${branch}"]`,
@@ -435,8 +515,12 @@ export default function Home() {
         if (!palace) return null;
         const rect = palace.getBoundingClientRect();
         return {
-          x: rect.left - boardBounds.left - board.clientLeft + rect.width / 2,
-          y: rect.top - boardBounds.top - board.clientTop + rect.height / 2,
+          x:
+            (rect.left - boardBounds.left + rect.width / 2) / scaleX -
+            board.clientLeft,
+          y:
+            (rect.top - boardBounds.top + rect.height / 2) / scaleY -
+            board.clientTop,
         };
       };
 
@@ -518,6 +602,7 @@ export default function Home() {
     showExtra,
     showCycles,
     showAnnual,
+    desktopFit,
   ]);
 
   const selectPalace = (branch: number) => {
@@ -924,174 +1009,193 @@ export default function Home() {
               </label>
             </div>
 
-            <div className="chart-frame">
-              <div className="board-caption">
-                <div>
-                  <span className="board-caption__mark">✦</span>
-                  <strong>Địa bàn Tử Vi</strong>
-                  <span className="board-caption__sub">
-                    ĐỊA CHI CỐ ĐỊNH · NỀN MÀU NGŨ HÀNH
+            <div
+              className="chart-fit"
+              data-fitted={desktopFit !== null}
+              style={
+                desktopFit
+                  ? ({
+                      "--chart-fit-scale": desktopFit.scale,
+                      "--chart-fit-height": `${desktopFit.height}px`,
+                    } as CSSProperties)
+                  : undefined
+              }
+            >
+              <div className="chart-frame" ref={chartFrameRef}>
+                <div className="board-caption">
+                  <div>
+                    <span className="board-caption__mark">✦</span>
+                    <strong>Địa bàn Tử Vi</strong>
+                    <span className="board-caption__sub">
+                      ĐỊA CHI CỐ ĐỊNH · NỀN MÀU NGŨ HÀNH
+                    </span>
+                  </div>
+                  <span className="board-instruction">
+                    Mặc định kẻ từ cung Mệnh; bấm cung khác để đổi đường nối{" "}
+                    <Icon name="chevron" size={15} />
                   </span>
                 </div>
-                <span className="board-instruction">
-                  Mặc định kẻ từ cung Mệnh; bấm cung khác để đổi đường nối{" "}
-                  <Icon name="chevron" size={15} />
-                </span>
-              </div>
-              <div
-                className={`chart-scroll chart-scroll--${mobileView}`}
-                role="region"
-                aria-label={
-                  mobileView === "overview"
-                    ? "Địa bàn 12 cung, chế độ toàn cảnh trên điện thoại"
-                    : "Địa bàn 12 cung, vuốt ngang trên điện thoại để đọc chi tiết"
-                }
-                tabIndex={0}
-              >
                 <div
-                  className="chart-grid"
-                  data-font-size={fontSize}
-                  data-mobile-view={mobileView}
-                  ref={boardRef}
+                  className={`chart-scroll chart-scroll--${mobileView}`}
+                  role="region"
+                  aria-label={
+                    mobileView === "overview"
+                      ? "Địa bàn 12 cung, chế độ toàn cảnh trên điện thoại"
+                      : "Địa bàn 12 cung, vuốt ngang trên điện thoại để đọc chi tiết"
+                  }
+                  tabIndex={0}
                 >
-                  {BOARD_POSITIONS.map(({ branch, row, col }) => (
-                    <PalaceCell
-                      key={branch}
-                      palace={chart.palaces[branch]}
-                      row={row}
-                      col={col}
-                      active={activeBranch === branch}
-                      isCurrentDaiHan={chart.currentDaiHan === branch}
-                      isCurrentTieuHan={chart.currentTieuHan === branch}
-                      onSelect={() => selectPalace(branch)}
-                      showMain={showMain}
-                      showExtra={showExtra}
-                      showCycles={showCycles}
-                      showAnnual={showAnnual}
-                    />
-                  ))}
-                  <PalaceConnections geometry={connectionGeometry} />
-                  <section
-                    className="center-panel"
-                    style={{ gridColumn: "2 / span 2", gridRow: "2 / span 2" }}
-                    aria-label="Thiên bàn và thông tin lá số"
+                  <div
+                    className="chart-grid"
+                    data-font-size={fontSize}
+                    data-mobile-view={mobileView}
+                    ref={boardRef}
                   >
-                    <div className="center-ornament" aria-hidden="true">
-                      <span>✦</span>
-                    </div>
-                    <div className="center-eyebrow">
-                      TỬ VI ĐẨU SỐ · TAM HỢP NAM PHÁI
-                    </div>
-                    <h2>{chart.name}</h2>
-                    <p className="center-subtitle">
-                      THIÊN BÀN · THÔNG TIN LÁ SỐ
-                    </p>
-                    <div className="center-quickfacts">
-                      <span>
-                        <small>MỆNH</small>
-                        <b>{BRANCHES[chart.menh]}</b>
-                      </span>
-                      <span>
-                        <small>THÂN</small>
-                        <b>{BRANCHES[chart.than]}</b>
-                      </span>
-                      <span>
-                        <small>NGŨ HÀNH CỤC</small>
-                        <b>{chart.cuc.label}</b>
-                      </span>
-                    </div>
-                    <div className="center-divider">
-                      <span>Thông tin chi tiết</span>
-                    </div>
-                    <dl className="center-info">
-                      <CenterInfo
-                        title="Dương lịch sinh"
-                        value={dateText(chart.recordedSolar)}
+                    {BOARD_POSITIONS.map(({ branch, row, col }) => (
+                      <PalaceCell
+                        key={branch}
+                        palace={chart.palaces[branch]}
+                        row={row}
+                        col={col}
+                        active={activeBranch === branch}
+                        isCurrentDaiHan={chart.currentDaiHan === branch}
+                        isCurrentTieuHan={chart.currentTieuHan === branch}
+                        onSelect={() => selectPalace(branch)}
+                        showMain={showMain}
+                        showExtra={showExtra}
+                        showCycles={showCycles}
+                        showAnnual={showAnnual}
                       />
-                      <CenterInfo
-                        title="Âm lịch sinh"
-                        value={`${dateText(chart.lunar)}${chart.lunar.leap ? " (nhuận)" : ""}`}
-                      />
-                      <CenterInfo title="Năm sinh" value={chart.birthYear} />
-                      <CenterInfo
-                        title="Giờ sinh"
-                        value={`Giờ ${chart.hour}`}
-                      />
-                      <CenterInfo
-                        title="Giới tính"
-                        value={chart.gender === "male" ? "Nam" : "Nữ"}
-                      />
-                      <CenterInfo
-                        title="Âm dương"
-                        value={
-                          chart.reversed
-                            ? "Âm nam / Dương nữ · nghịch"
-                            : "Dương nam / Âm nữ · thuận"
-                        }
-                      />
-                      <CenterInfo
-                        title="Năm xem"
-                        value={`${submitted.viewYear} · ${chart.viewYear}`}
-                      />
-                      <CenterInfo
-                        title="Tuổi mụ"
-                        value={`${chart.ageMu} tuổi`}
-                      />
-                      <CenterInfo
-                        title="Đại hạn"
-                        value={
-                          chart.currentDaiHan === null
-                            ? "Chưa vào đại hạn"
-                            : chart.palaces[chart.currentDaiHan].house
-                        }
-                      />
-                      <CenterInfo
-                        title="Thân cư"
-                        value={chart.palaces[chart.than].house}
-                      />
-                      {chart.shiftedLateZi && (
+                    ))}
+                    <PalaceConnections geometry={connectionGeometry} />
+                    <section
+                      className="center-panel"
+                      style={{
+                        gridColumn: "2 / span 2",
+                        gridRow: "2 / span 2",
+                      }}
+                      aria-label="Thiên bàn và thông tin lá số"
+                    >
+                      <div className="center-ornament" aria-hidden="true">
+                        <span>✦</span>
+                      </div>
+                      <div className="center-eyebrow">
+                        TỬ VI ĐẨU SỐ · TAM HỢP NAM PHÁI
+                      </div>
+                      <h2>{chart.name}</h2>
+                      <p className="center-subtitle">
+                        THIÊN BÀN · THÔNG TIN LÁ SỐ
+                      </p>
+                      <div className="center-quickfacts">
+                        <span>
+                          <small>MỆNH</small>
+                          <b>{BRANCHES[chart.menh]}</b>
+                        </span>
+                        <span>
+                          <small>THÂN</small>
+                          <b>{BRANCHES[chart.than]}</b>
+                        </span>
+                        <span>
+                          <small>NGŨ HÀNH CỤC</small>
+                          <b>{chart.cuc.label}</b>
+                        </span>
+                      </div>
+                      <div className="center-divider">
+                        <span>Thông tin chi tiết</span>
+                      </div>
+                      <dl className="center-info">
                         <CenterInfo
-                          title="Ngày dùng để an số"
-                          value={dateText(chart.solar)}
+                          title="Dương lịch sinh"
+                          value={dateText(chart.recordedSolar)}
                         />
-                      )}
-                    </dl>
-                    <p className="center-note">
-                      <Icon name="info" size={13} /> Mặc định nối từ cung Mệnh.
-                      Chạm cung khác để xem tam hợp và xung chiếu; chạm lại để
-                      trở về Mệnh.
-                    </p>
-                  </section>
+                        <CenterInfo
+                          title="Âm lịch sinh"
+                          value={`${dateText(chart.lunar)}${chart.lunar.leap ? " (nhuận)" : ""}`}
+                        />
+                        <CenterInfo title="Năm sinh" value={chart.birthYear} />
+                        <CenterInfo
+                          title="Giờ sinh"
+                          value={`Giờ ${chart.hour}`}
+                        />
+                        <CenterInfo
+                          title="Giới tính"
+                          value={chart.gender === "male" ? "Nam" : "Nữ"}
+                        />
+                        <CenterInfo
+                          title="Âm dương"
+                          value={
+                            chart.reversed
+                              ? "Âm nam / Dương nữ · nghịch"
+                              : "Dương nam / Âm nữ · thuận"
+                          }
+                        />
+                        <CenterInfo
+                          title="Năm xem"
+                          value={`${submitted.viewYear} · ${chart.viewYear}`}
+                        />
+                        <CenterInfo
+                          title="Tuổi mụ"
+                          value={`${chart.ageMu} tuổi`}
+                        />
+                        <CenterInfo
+                          title="Đại hạn"
+                          value={
+                            chart.currentDaiHan === null
+                              ? "Chưa vào đại hạn"
+                              : chart.palaces[chart.currentDaiHan].house
+                          }
+                        />
+                        <CenterInfo
+                          title="Thân cư"
+                          value={chart.palaces[chart.than].house}
+                        />
+                        {chart.shiftedLateZi && (
+                          <CenterInfo
+                            title="Ngày dùng để an số"
+                            value={dateText(chart.solar)}
+                          />
+                        )}
+                      </dl>
+                      <p className="center-note">
+                        <Icon name="info" size={13} /> Mặc định nối từ cung
+                        Mệnh. Chạm cung khác để xem tam hợp và xung chiếu; chạm
+                        lại để trở về Mệnh.
+                      </p>
+                    </section>
+                  </div>
                 </div>
-              </div>
-              <div className="board-foot">
-                <div
-                  className="typography-legend"
-                  aria-label="Chú thích cỡ chữ sao"
-                >
-                  <span className="typography-legend__main">TỬ VI</span>
-                  <span>Chính tinh</span>
-                  <span className="typography-legend__extra">Thiên Khôi</span>
-                  <span>Phụ tinh</span>
-                  <span className="typography-legend__annual">L. Thiên Mã</span>
-                  <span>Sao lưu</span>
+                <div className="board-foot">
+                  <div
+                    className="typography-legend"
+                    aria-label="Chú thích cỡ chữ sao"
+                  >
+                    <span className="typography-legend__main">TỬ VI</span>
+                    <span>Chính tinh</span>
+                    <span className="typography-legend__extra">Thiên Khôi</span>
+                    <span>Phụ tinh</span>
+                    <span className="typography-legend__annual">
+                      L. Thiên Mã
+                    </span>
+                    <span>Sao lưu</span>
+                  </div>
+                  <div className="legend">
+                    <span>
+                      <i className="legend-line legend-line--tam" /> Tam hợp (2
+                      đường)
+                    </span>
+                    <span>
+                      <i className="legend-line legend-line--xung" /> Xung chiếu
+                      (1 đường)
+                    </span>
+                    <span>
+                      <i className="legend-dot legend-dot--annual" /> Sao lưu
+                      niên
+                    </span>
+                  </div>
+                  <span className="swipe-hint">
+                    ↔ Kéo ngang để xem toàn bộ lá số
+                  </span>
                 </div>
-                <div className="legend">
-                  <span>
-                    <i className="legend-line legend-line--tam" /> Tam hợp (2
-                    đường)
-                  </span>
-                  <span>
-                    <i className="legend-line legend-line--xung" /> Xung chiếu
-                    (1 đường)
-                  </span>
-                  <span>
-                    <i className="legend-dot legend-dot--annual" /> Sao lưu niên
-                  </span>
-                </div>
-                <span className="swipe-hint">
-                  ↔ Kéo ngang để xem toàn bộ lá số
-                </span>
               </div>
             </div>
           </section>

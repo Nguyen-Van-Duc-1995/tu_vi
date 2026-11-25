@@ -1,0 +1,72 @@
+/* Desktop: khung lá số tự thu nhỏ, tối đa 95% chiều cao viewport.
+   Các biến CSS được tính bởi ResizeObserver trong page.tsx. */
+@media screen and (min-width: 769px) {
+  .chart-fit {
+    position: relative;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .chart-fit > .chart-frame {
+    width: 100%;
+    height: auto;
+    max-height: none;
+    box-sizing: border-box;
+    transform-origin: top center;
+  }
+
+  .chart-fit[data-fitted="true"] {
+    height: var(--chart-fit-height);
+    overflow: hidden;
+    overflow: clip;
+  }
+
+  .chart-fit[data-fitted="true"] > .chart-frame {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    margin: 0 auto;
+    transform: scale(var(--chart-fit-scale, 1));
+  }
+
+  .chart-fit .chart-scroll {
+    height: auto;
+    max-height: none;
+  }
+}
+
+/* Mobile: giữ nguyên layout và tách hai nhãn hạn thành hai hàng. */
+@media screen and (max-width: 768px) {
+  .chart-fit {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .chart-fit .palace-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px;
+  }
+
+  .chart-fit .palace-tags .tag--current,
+  .chart-fit .palace-tags .tag--year {
+    display: block;
+    flex: 0 0 100%;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    white-space: normal;
+    overflow-wrap: break-word;
+    text-align: center;
+    line-height: 1.3;
+  }
+}
+
+/* Khi in, không áp dụng giới hạn chiều cao viewport của desktop. */
+@media print {
+  .chart-fit {
+    display: contents;
+  }
+}
