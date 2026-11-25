@@ -1,6 +1,14 @@
 "use client";
 
-import { useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type FormEvent, type ReactNode } from "react";
+import {
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+  type FormEvent,
+  type ReactNode,
+} from "react";
 import {
   BOARD_POSITIONS,
   BRANCHES,
@@ -32,70 +40,161 @@ const defaultInput: BirthInput = {
  * CSS áp các màu đặc theo data-element, không tô theo tên cung Mệnh/Thân.
  */
 const branchElement = [
-  "thuy", "tho", "moc", "moc", "tho", "hoa",
-  "hoa", "tho", "kim", "kim", "tho", "thuy",
+  "thuy",
+  "tho",
+  "moc",
+  "moc",
+  "tho",
+  "hoa",
+  "hoa",
+  "tho",
+  "kim",
+  "kim",
+  "tho",
+  "thuy",
 ] as const;
 
 // Giữ nguyên chuỗi đang nhập, kể cả chuỗi rỗng hoặc số 0 ở đầu.
-const numericText = (value: string, length: number) => value.replace(/[^0-9]/g, "").slice(0, length);
+const numericText = (value: string, length: number) =>
+  value.replace(/[^0-9]/g, "").slice(0, length);
 
 const dateText = (d: { day: number; month: number; year: number }) =>
   `${String(d.day).padStart(2, "0")}/${String(d.month).padStart(2, "0")}/${d.year}`;
 
-type IconName = "sparkles" | "calendar" | "rotate" | "printer" | "sliders" | "arrow" | "info" | "compass" | "chevron";
+type IconName =
+  | "sparkles"
+  | "calendar"
+  | "rotate"
+  | "printer"
+  | "sliders"
+  | "arrow"
+  | "info"
+  | "compass"
+  | "chevron";
 
 function Icon({ name, size = 18 }: { name: IconName; size?: number }) {
   let content: ReactNode;
   switch (name) {
     case "sparkles":
-      content = <><path d="m12 3 1.7 5.3L19 10l-5.3 1.7L12 17l-1.7-5.3L5 10l5.3-1.7L12 3Z" /><path d="m19 17 .6 1.5L21 19l-1.4.5L19 21l-.6-1.5L17 19l1.4-.5L19 17ZM4 16l.7 1.3L6 18l-1.3.7L4 20l-.7-1.3L2 18l1.3-.7L4 16Z" /></>;
+      content = (
+        <>
+          <path d="m12 3 1.7 5.3L19 10l-5.3 1.7L12 17l-1.7-5.3L5 10l5.3-1.7L12 3Z" />
+          <path d="m19 17 .6 1.5L21 19l-1.4.5L19 21l-.6-1.5L17 19l1.4-.5L19 17ZM4 16l.7 1.3L6 18l-1.3.7L4 20l-.7-1.3L2 18l1.3-.7L4 16Z" />
+        </>
+      );
       break;
     case "calendar":
-      content = <><rect x="3" y="5" width="18" height="16" rx="2" /><path d="M7 3v4M17 3v4M3 10h18" /></>;
+      content = (
+        <>
+          <rect x="3" y="5" width="18" height="16" rx="2" />
+          <path d="M7 3v4M17 3v4M3 10h18" />
+        </>
+      );
       break;
     case "rotate":
-      content = <><path d="M3 11a9 9 0 1 1 2.5 6.3" /><path d="M3 4v7h7" /></>;
+      content = (
+        <>
+          <path d="M3 11a9 9 0 1 1 2.5 6.3" />
+          <path d="M3 4v7h7" />
+        </>
+      );
       break;
     case "printer":
-      content = <><path d="M6 9V3h12v6M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" /><path d="M6 14h12v7H6zM18 12h.01" /></>;
+      content = (
+        <>
+          <path d="M6 9V3h12v6M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
+          <path d="M6 14h12v7H6zM18 12h.01" />
+        </>
+      );
       break;
     case "sliders":
-      content = <><path d="M4 7h16M4 17h16" /><circle cx="9" cy="7" r="2" fill="currentColor" stroke="none" /><circle cx="15" cy="17" r="2" fill="currentColor" stroke="none" /></>;
+      content = (
+        <>
+          <path d="M4 7h16M4 17h16" />
+          <circle cx="9" cy="7" r="2" fill="currentColor" stroke="none" />
+          <circle cx="15" cy="17" r="2" fill="currentColor" stroke="none" />
+        </>
+      );
       break;
     case "arrow":
-      content = <><path d="M5 12h14m-6-6 6 6-6 6" /></>;
+      content = (
+        <>
+          <path d="M5 12h14m-6-6 6 6-6 6" />
+        </>
+      );
       break;
     case "info":
-      content = <><circle cx="12" cy="12" r="9" /><path d="M12 11v5M12 8h.01" /></>;
+      content = (
+        <>
+          <circle cx="12" cy="12" r="9" />
+          <path d="M12 11v5M12 8h.01" />
+        </>
+      );
       break;
     case "compass":
-      content = <><circle cx="12" cy="12" r="9" /><path d="m15.7 8.3-2.5 4.9-4.9 2.5 2.5-4.9 4.9-2.5Z" /></>;
+      content = (
+        <>
+          <circle cx="12" cy="12" r="9" />
+          <path d="m15.7 8.3-2.5 4.9-4.9 2.5 2.5-4.9 4.9-2.5Z" />
+        </>
+      );
       break;
     case "chevron":
       content = <path d="m9 18 6-6-6-6" />;
       break;
   }
   return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      focusable="false"
+    >
       {content}
     </svg>
   );
 }
 
-function StarGroup({ stars, className = "" }: { stars: Star[]; className?: string }) {
+function StarGroup({
+  stars,
+  className = "",
+}: {
+  stars: Star[];
+  className?: string;
+}) {
   if (stars.length === 0) return null;
   return (
     <div className={`star-group ${className}`}>
       {stars.map((star) => (
-        <span className={`star star--${star.kind}`} key={`${star.kind}-${star.name}`}>{star.name}</span>
+        <span
+          className={`star star--${star.kind}`}
+          key={`${star.kind}-${star.name}`}
+        >
+          {star.name}
+        </span>
       ))}
     </div>
   );
 }
 
 function PalaceCell({
-  palace, row, col, active, isCurrentDaiHan, isCurrentTieuHan,
-  onSelect, showMain, showExtra, showCycles, showAnnual,
+  palace,
+  row,
+  col,
+  active,
+  isCurrentDaiHan,
+  isCurrentTieuHan,
+  onSelect,
+  showMain,
+  showExtra,
+  showCycles,
+  showAnnual,
 }: {
   palace: Palace;
   row: number;
@@ -142,16 +241,22 @@ function PalaceCell({
         <div className="palace-tags">
           {palace.tuan && <span className="tag tag--void">Tuần</span>}
           {palace.triet && <span className="tag tag--void">Triệt</span>}
-          {isCurrentDaiHan && <span className="tag tag--current">Đại hạn hiện tại</span>}
-          {isCurrentTieuHan && <span className="tag tag--year">Tiểu hạn năm xem</span>}
+          {isCurrentDaiHan && (
+            <span className="tag tag--current">Đại hạn hiện tại</span>
+          )}
+          {isCurrentTieuHan && (
+            <span className="tag tag--year">Tiểu hạn năm xem</span>
+          )}
         </div>
       )}
       <div className="palace-stars">
         {showMain && (
           <div className="palace-main-wrap" aria-label="Chính tinh">
-            {palace.main.length
-              ? <StarGroup stars={palace.main} className="star-group--main" />
-              : <span className="star-empty">Vô chính diệu</span>}
+            {palace.main.length ? (
+              <StarGroup stars={palace.main} className="star-group--main" />
+            ) : (
+              <span className="star-empty">Vô chính diệu</span>
+            )}
           </div>
         )}
         {showExtra && palace.extra.length > 0 && (
@@ -172,7 +277,9 @@ function PalaceCell({
       </div>
       <div className="palace-footer">
         <span>ĐẠI HẠN</span>
-        <strong>{palace.daiHan?.from}–{palace.daiHan?.to} tuổi</strong>
+        <strong>
+          {palace.daiHan?.from}–{palace.daiHan?.to} tuổi
+        </strong>
       </div>
     </section>
   );
@@ -188,9 +295,17 @@ type ConnectionSegment = {
   x2: number;
   y2: number;
 };
-type ConnectionGeometry = { width: number; height: number; lines: ConnectionSegment[] };
+type ConnectionGeometry = {
+  width: number;
+  height: number;
+  lines: ConnectionSegment[];
+};
 
-function PalaceConnections({ geometry }: { geometry: ConnectionGeometry | null }) {
+function PalaceConnections({
+  geometry,
+}: {
+  geometry: ConnectionGeometry | null;
+}) {
   if (!geometry || geometry.lines.length === 0) return null;
   return (
     <svg
@@ -202,10 +317,19 @@ function PalaceConnections({ geometry }: { geometry: ConnectionGeometry | null }
     >
       {geometry.lines.map((line) => (
         <g key={`${line.kind}-${line.branch}`}>
-          <line className="palace-connection-halo" x1={line.x1} y1={line.y1} x2={line.x2} y2={line.y2} />
+          <line
+            className="palace-connection-halo"
+            x1={line.x1}
+            y1={line.y1}
+            x2={line.x2}
+            y2={line.y2}
+          />
           <line
             className={`palace-connection ${line.kind === "tam-hop" ? "palace-connection--tam" : "palace-connection--xung"}`}
-            x1={line.x1} y1={line.y1} x2={line.x2} y2={line.y2}
+            x1={line.x1}
+            y1={line.y1}
+            x2={line.x2}
+            y2={line.y2}
           />
         </g>
       ))}
@@ -214,14 +338,33 @@ function PalaceConnections({ geometry }: { geometry: ConnectionGeometry | null }
 }
 
 function CenterInfo({ title, value }: { title: string; value: ReactNode }) {
-  return <div className="center-info-item"><dt>{title}</dt><dd>{value}</dd></div>;
+  return (
+    <div className="center-info-item">
+      <dt>{title}</dt>
+      <dd>{value}</dd>
+    </div>
+  );
 }
 
-function FilterOption({ label, checked, onChange }: { label: string; checked: boolean; onChange: (checked: boolean) => void }) {
+function FilterOption({
+  label,
+  checked,
+  onChange,
+}: {
+  label: string;
+  checked: boolean;
+  onChange: (checked: boolean) => void;
+}) {
   return (
     <label className={`filter-chip ${checked ? "filter-chip--checked" : ""}`}>
-      <input type="checkbox" checked={checked} onChange={(event) => onChange(event.target.checked)} />
-      <span className="filter-indicator" aria-hidden="true">{checked ? "✓" : "+"}</span>
+      <input
+        type="checkbox"
+        checked={checked}
+        onChange={(event) => onChange(event.target.checked)}
+      />
+      <span className="filter-indicator" aria-hidden="true">
+        {checked ? "✓" : "+"}
+      </span>
       {label}
     </label>
   );
@@ -233,7 +376,9 @@ export default function Home() {
   // Chuyen thanh number DUY NHAT khi bam nut lap la so.
   const [dayText, setDayText] = useState(String(defaultInput.day));
   const [yearText, setYearText] = useState(String(defaultInput.year));
-  const [viewYearText, setViewYearText] = useState(String(defaultInput.viewYear));
+  const [viewYearText, setViewYearText] = useState(
+    String(defaultInput.viewYear),
+  );
   const [formError, setFormError] = useState("");
   const [submitted, setSubmitted] = useState<BirthInput>(defaultInput);
   // null = no manual override. In this state, show the three lines from Mệnh.
@@ -243,25 +388,34 @@ export default function Home() {
   const [showExtra, setShowExtra] = useState(true);
   const [showCycles, setShowCycles] = useState(false);
   const [showAnnual, setShowAnnual] = useState(true);
-  const [fontSize, setFontSize] = useState<"small" | "medium" | "large">("medium");
+  const [fontSize, setFontSize] = useState<"small" | "medium" | "large">(
+    "medium",
+  );
   // Chỉ trên điện thoại: ưu tiên xem đủ 12 cung, nhưng cho phép chuyển sang đọc đầy đủ.
-  const [mobileView, setMobileView] = useState<"overview" | "detail">("overview");
+  const [mobileView, setMobileView] = useState<"overview" | "detail">(
+    "overview",
+  );
 
   const result = useMemo(() => {
     try {
       return { chart: createTuViChart(submitted), error: "" };
     } catch (error) {
-      return { chart: null, error: error instanceof Error ? error.message : "Không thể lập lá số." };
+      return {
+        chart: null,
+        error: error instanceof Error ? error.message : "Không thể lập lá số.",
+      };
     }
   }, [submitted]);
 
   const chart = result.chart;
   // Nếu chưa chọn thủ công, mọi thông tin và đường nối đều dựa trên cung Mệnh.
-  const activeBranch = chart ? (selected ?? chart.menh) : null;
-  const chosen = chart && activeBranch !== null ? chart.palaces[activeBranch] : null;
+  const activeBranch = chart ? selected ?? chart.menh : null;
+  const chosen =
+    chart && activeBranch !== null ? chart.palaces[activeBranch] : null;
   const related = activeBranch !== null ? relatedPalaces(activeBranch) : null;
   const boardRef = useRef<HTMLDivElement>(null);
-  const [connectionGeometry, setConnectionGeometry] = useState<ConnectionGeometry | null>(null);
+  const [connectionGeometry, setConnectionGeometry] =
+    useState<ConnectionGeometry | null>(null);
 
   useLayoutEffect(() => {
     const board = boardRef.current;
@@ -275,7 +429,9 @@ export default function Home() {
     const measure = () => {
       const boardBounds = board.getBoundingClientRect();
       const getCenter = (branch: number): LinePoint | null => {
-        const palace = board.querySelector<HTMLElement>(`[data-branch="${branch}"]`);
+        const palace = board.querySelector<HTMLElement>(
+          `[data-branch="${branch}"]`,
+        );
         if (!palace) return null;
         const rect = palace.getBoundingClientRect();
         return {
@@ -288,47 +444,86 @@ export default function Home() {
       if (!from) return;
       const related = relatedPalaces(activeBranch);
       const destinations: { branch: number; kind: ConnectionKind }[] = [
-        ...related.tamHop.map((branch) => ({ branch, kind: "tam-hop" as const })),
+        ...related.tamHop.map((branch) => ({
+          branch,
+          kind: "tam-hop" as const,
+        })),
         { branch: related.xung, kind: "xung-chieu" },
       ];
       const lines = destinations.flatMap(({ branch, kind }) => {
         const to = getCenter(branch);
         if (!to) return [];
+
         const dx = to.x - from.x;
         const dy = to.y - from.y;
         const distance = Math.hypot(dx, dy);
+
         if (distance === 0) return [];
-        // Shorten ends slightly so strokes do not obscure the stars in a cell.
-        const trim = Math.min(78, distance / 4);
+
+        const isMobile = window.matchMedia("(max-width: 768px)").matches;
+
+        const baseTrim = Math.min(78, distance / 4);
+
+        const trim = isMobile
+          ? Math.max(0, (distance - (distance - 2 * baseTrim) * 1.3) / 2)
+          : baseTrim;
+
         const ux = dx / distance;
         const uy = dy / distance;
-        return [{
-          branch,
-          kind,
-          x1: from.x + ux * trim,
-          y1: from.y + uy * trim,
-          x2: to.x - ux * trim,
-          y2: to.y - uy * trim,
-        }];
+
+        return [
+          {
+            branch,
+            kind,
+
+            // Mobile: cùng xuất phát từ tâm cung đang chọn
+            x1: isMobile ? from.x : from.x + ux * trim,
+            y1: isMobile ? from.y : from.y + uy * trim,
+
+            // Giữ nguyên điểm đích
+            x2: to.x - ux * trim,
+            y2: to.y - uy * trim,
+          },
+        ];
       });
-      setConnectionGeometry({ width: board.clientWidth, height: board.clientHeight, lines });
+      setConnectionGeometry({
+        width: board.clientWidth,
+        height: board.clientHeight,
+        lines,
+      });
     };
 
     measure();
-    const observer = typeof ResizeObserver !== "undefined" ? new ResizeObserver(measure) : null;
+    const observer =
+      typeof ResizeObserver !== "undefined"
+        ? new ResizeObserver(measure)
+        : null;
     if (observer) {
       observer.observe(board);
-      board.querySelectorAll<HTMLElement>(".palace").forEach((palace) => observer.observe(palace));
+      board
+        .querySelectorAll<HTMLElement>(".palace")
+        .forEach((palace) => observer.observe(palace));
     }
     window.addEventListener("resize", measure);
     return () => {
       observer?.disconnect();
       window.removeEventListener("resize", measure);
     };
-  }, [activeBranch, chart, fontSize, mobileView, showMain, showExtra, showCycles, showAnnual]);
+  }, [
+    activeBranch,
+    chart,
+    fontSize,
+    mobileView,
+    showMain,
+    showExtra,
+    showCycles,
+    showAnnual,
+  ]);
 
   const selectPalace = (branch: number) => {
-    setSelected((current) => (current === branch || branch === chart?.menh ? null : branch));
+    setSelected((current) =>
+      current === branch || branch === chart?.menh ? null : branch,
+    );
   };
   const set = <K extends keyof BirthInput>(field: K, value: BirthInput[K]) => {
     setDraft((prev) => ({ ...prev, [field]: value }));
@@ -347,7 +542,11 @@ export default function Home() {
       setFormError("Năm sinh phải gồm 4 chữ số, từ 1900 đến 2100.");
       return;
     }
-    if (!/^[0-9]{4}$/.test(viewYearText) || viewYear < 1900 || viewYear > 2100) {
+    if (
+      !/^[0-9]{4}$/.test(viewYearText) ||
+      viewYear < 1900 ||
+      viewYear > 2100
+    ) {
       setFormError("Năm xem hạn phải gồm 4 chữ số, từ 1900 đến 2100.");
       return;
     }
@@ -377,82 +576,216 @@ export default function Home() {
     <div className="app-shell">
       <header className="masthead">
         <div className="masthead-identity">
-          <div className="brand-mark" aria-hidden="true"><span>紫</span><span>微</span></div>
+          <div className="brand-mark" aria-hidden="true">
+            <span>紫</span>
+            <span>微</span>
+          </div>
           <div>
             <span className="eyebrow">TỬ VI ĐẨU SỐ · NAM PHÁI</span>
-            <h1>Lập lá số Tử Vi <span className="heading-flourish">✧</span></h1>
-            <p>An sao Tam Hợp phái · Địa chi cố định, màu ngũ hành theo ảnh mẫu</p>
+            <h1>
+              Lập lá số Tử Vi <span className="heading-flourish">✧</span>
+            </h1>
+            <p>
+              An sao Tam Hợp phái · Địa chi cố định, màu ngũ hành theo ảnh mẫu
+            </p>
           </div>
         </div>
-        <div className="masthead-badge"><Icon name="compass" size={18} /><span>12 địa chi cố định</span></div>
+        <div className="masthead-badge">
+          <Icon name="compass" size={18} />
+          <span>12 địa chi cố định</span>
+        </div>
       </header>
 
       <section className="form-panel" aria-labelledby="form-title">
         <div className="section-heading">
-          <div className="section-heading__icon"><Icon name="calendar" size={20} /></div>
+          <div className="section-heading__icon">
+            <Icon name="calendar" size={20} />
+          </div>
           <div className="section-heading__copy">
             <span className="section-index">BƯỚC 01 / NHẬP DỮ LIỆU</span>
             <h2 id="form-title">Thông tin lập lá số</h2>
             <p>Điền ngày giờ sinh và năm cần xem để lập lá số.</p>
           </div>
-          <button type="button" className="ghost-button" onClick={resetAll}><Icon name="rotate" size={15} /> Khôi phục mẫu</button>
+          <button type="button" className="ghost-button" onClick={resetAll}>
+            <Icon name="rotate" size={15} /> Khôi phục mẫu
+          </button>
         </div>
 
         <form onSubmit={submit} className="birth-form">
           <label className="field field--name">
             <span>Họ và tên</span>
-            <input value={draft.name} onChange={(event) => set("name", event.target.value)} autoComplete="name" required />
+            <input
+              value={draft.name}
+              onChange={(event) => set("name", event.target.value)}
+              autoComplete="name"
+              required
+            />
           </label>
           <label className="field field--calendar">
             <span>Loại lịch</span>
-            <select value={draft.calendar} onChange={(event) => {
-              setDraft((prev) => ({ ...prev, calendar: event.target.value as BirthInput["calendar"], lunarLeap: false }));
-            }}>
+            <select
+              value={draft.calendar}
+              onChange={(event) => {
+                setDraft((prev) => ({
+                  ...prev,
+                  calendar: event.target.value as BirthInput["calendar"],
+                  lunarLeap: false,
+                }));
+              }}
+            >
               <option value="solar">Dương lịch</option>
               <option value="lunar">Âm lịch</option>
             </select>
           </label>
           <div className="field field--date">
             <span id="birth-date-label">Ngày tháng năm sinh</span>
-            <div className="date-grid" role="group" aria-labelledby="birth-date-label">
-              <label className="date-part"><span className="sr-only">Ngày sinh</span><input type="text" inputMode="numeric" autoComplete="off" maxLength={2} aria-label="Ngày sinh" value={dayText} onChange={(event) => { setDayText(numericText(event.target.value, 2)); setFormError(""); }} required /><small>Ngày</small></label>
-              <label className="date-part"><span className="sr-only">Tháng sinh</span><select aria-label="Tháng sinh" value={draft.month} onChange={(event) => set("month", Number(event.target.value))}>{Array.from({ length: 12 }, (_, i) => i + 1).map((m) => <option key={m} value={m}>{m}</option>)}</select><small>Tháng</small></label>
-              <label className="date-part"><span className="sr-only">Năm sinh</span><input type="text" inputMode="numeric" autoComplete="off" maxLength={4} aria-label="Năm sinh" value={yearText} onChange={(event) => { setYearText(numericText(event.target.value, 4)); setFormError(""); }} required /><small>Năm</small></label>
+            <div
+              className="date-grid"
+              role="group"
+              aria-labelledby="birth-date-label"
+            >
+              <label className="date-part">
+                <span className="sr-only">Ngày sinh</span>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  autoComplete="off"
+                  maxLength={2}
+                  aria-label="Ngày sinh"
+                  value={dayText}
+                  onChange={(event) => {
+                    setDayText(numericText(event.target.value, 2));
+                    setFormError("");
+                  }}
+                  required
+                />
+                <small>Ngày</small>
+              </label>
+              <label className="date-part">
+                <span className="sr-only">Tháng sinh</span>
+                <select
+                  aria-label="Tháng sinh"
+                  value={draft.month}
+                  onChange={(event) => set("month", Number(event.target.value))}
+                >
+                  {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
+                    <option key={m} value={m}>
+                      {m}
+                    </option>
+                  ))}
+                </select>
+                <small>Tháng</small>
+              </label>
+              <label className="date-part">
+                <span className="sr-only">Năm sinh</span>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  autoComplete="off"
+                  maxLength={4}
+                  aria-label="Năm sinh"
+                  value={yearText}
+                  onChange={(event) => {
+                    setYearText(numericText(event.target.value, 4));
+                    setFormError("");
+                  }}
+                  required
+                />
+                <small>Năm</small>
+              </label>
             </div>
           </div>
           <label className="field field--time">
-            <span>Giờ sinh <small className="field-optional">(24 giờ)</small></span>
-            <input type="time" value={draft.time} onChange={(event) => set("time", event.target.value)} required />
+            <span>
+              Giờ sinh <small className="field-optional">(24 giờ)</small>
+            </span>
+            <input
+              type="time"
+              value={draft.time}
+              onChange={(event) => set("time", event.target.value)}
+              required
+            />
           </label>
 
           <label className="field field--gender">
             <span>Giới tính</span>
-            <select value={draft.gender} onChange={(event) => set("gender", event.target.value as BirthInput["gender"])}>
+            <select
+              value={draft.gender}
+              onChange={(event) =>
+                set("gender", event.target.value as BirthInput["gender"])
+              }
+            >
               <option value="male">Nam</option>
               <option value="female">Nữ</option>
             </select>
           </label>
           <label className="field field--timezone">
             <span>Múi giờ an lịch</span>
-            <select value={draft.timeZone} onChange={(event) => set("timeZone", Number(event.target.value) as 7 | 8)}>
+            <select
+              value={draft.timeZone}
+              onChange={(event) =>
+                set("timeZone", Number(event.target.value) as 7 | 8)
+              }
+            >
               <option value={7}>Việt Nam (UTC+7)</option>
               <option value={8}>UTC+8 · đối chiếu lịch sử</option>
             </select>
           </label>
           <label className="field field--view-year">
             <span>Năm xem hạn</span>
-            <input type="text" inputMode="numeric" autoComplete="off" maxLength={4} aria-label="Năm xem hạn" value={viewYearText} onChange={(event) => { setViewYearText(numericText(event.target.value, 4)); setFormError(""); }} required />
+            <input
+              type="text"
+              inputMode="numeric"
+              autoComplete="off"
+              maxLength={4}
+              aria-label="Năm xem hạn"
+              value={viewYearText}
+              onChange={(event) => {
+                setViewYearText(numericText(event.target.value, 4));
+                setFormError("");
+              }}
+              required
+            />
           </label>
-          <div className="form-action"><button type="submit" className="submit-button"><Icon name="sparkles" size={18} /><span>An sao &amp; lập lá số</span><Icon name="arrow" size={17} /></button></div>
+          <div className="form-action">
+            <button type="submit" className="submit-button">
+              <Icon name="sparkles" size={18} />
+              <span>An sao &amp; lập lá số</span>
+              <Icon name="arrow" size={17} />
+            </button>
+          </div>
           {draft.calendar === "lunar" && (
-            <label className="leap-toggle"><input type="checkbox" checked={Boolean(draft.lunarLeap)} onChange={(event) => set("lunarLeap", event.target.checked)} /><span>Ngày sinh thuộc tháng nhuận âm lịch</span></label>
+            <label className="leap-toggle">
+              <input
+                type="checkbox"
+                checked={Boolean(draft.lunarLeap)}
+                onChange={(event) => set("lunarLeap", event.target.checked)}
+              />
+              <span>Ngày sinh thuộc tháng nhuận âm lịch</span>
+            </label>
           )}
         </form>
-        {formError && <div className="error-box" role="alert"><Icon name="info" size={18} />{formError}</div>}
-        <div className="form-note"><Icon name="info" size={15} /><span>Giờ Tý: 23:00–00:59. Từ 23:00 tính ngày âm kế tiếp. Với tháng nhuận, ngày 1–15 an như tháng chính, từ ngày 16 an theo tháng tiếp theo.</span></div>
+        {formError && (
+          <div className="error-box" role="alert">
+            <Icon name="info" size={18} />
+            {formError}
+          </div>
+        )}
+        <div className="form-note">
+          <Icon name="info" size={15} />
+          <span>
+            Giờ Tý: 23:00–00:59. Từ 23:00 tính ngày âm kế tiếp. Với tháng nhuận,
+            ngày 1–15 an như tháng chính, từ ngày 16 an theo tháng tiếp theo.
+          </span>
+        </div>
       </section>
 
-      {result.error && <div role="alert" className="error-box"><Icon name="info" size={19} />{result.error}</div>}
+      {result.error && (
+        <div role="alert" className="error-box">
+          <Icon name="info" size={19} />
+          {result.error}
+        </div>
+      )}
 
       {chart && (
         <>
@@ -460,64 +793,167 @@ export default function Home() {
             <div className="result-heading">
               <div>
                 <span className="section-index">BƯỚC 02 / ĐỊA BÀN TỬ VI</span>
-                <h2 id="result-title">Lá số <span>{chart.name}</span></h2>
-                <p>Năm xem {submitted.viewYear} · {chart.viewYear} · {chart.ageMu} tuổi mụ</p>
+                <h2 id="result-title">
+                  Lá số <span>{chart.name}</span>
+                </h2>
+                <p>
+                  Năm xem {submitted.viewYear} · {chart.viewYear} ·{" "}
+                  {chart.ageMu} tuổi mụ
+                </p>
               </div>
               <div className="result-actions">
-                <span className="result-ready"><span className="ready-dot" />Đã an sao</span>
-                <button type="button" className="print-button" onClick={() => window.print()}><Icon name="printer" size={17} /> In lá số</button>
+                <span className="result-ready">
+                  <span className="ready-dot" />
+                  Đã an sao
+                </span>
+                <button
+                  type="button"
+                  className="print-button"
+                  onClick={() => window.print()}
+                >
+                  <Icon name="printer" size={17} /> In lá số
+                </button>
               </div>
             </div>
 
             <div className="view-controls">
-              <div className="view-controls__title"><Icon name="sliders" size={17} /><span>Tùy chỉnh hiển thị</span></div>
-              <div className="filter-list">
-                <FilterOption label="Chính tinh" checked={showMain} onChange={setShowMain} />
-                <FilterOption label="Phụ tinh" checked={showExtra} onChange={setShowExtra} />
-                <FilterOption label="Vòng sao" checked={showCycles} onChange={setShowCycles} />
-                <FilterOption label={`Sao lưu ${submitted.viewYear}`} checked={showAnnual} onChange={setShowAnnual} />
+              <div className="view-controls__title">
+                <Icon name="sliders" size={17} />
+                <span>Tùy chỉnh hiển thị</span>
               </div>
-              <div className="font-controls" role="group" aria-label="Cỡ chữ trong lá số">
+              <div className="filter-list">
+                <FilterOption
+                  label="Chính tinh"
+                  checked={showMain}
+                  onChange={setShowMain}
+                />
+                <FilterOption
+                  label="Phụ tinh"
+                  checked={showExtra}
+                  onChange={setShowExtra}
+                />
+                <FilterOption
+                  label="Vòng sao"
+                  checked={showCycles}
+                  onChange={setShowCycles}
+                />
+                <FilterOption
+                  label={`Sao lưu ${submitted.viewYear}`}
+                  checked={showAnnual}
+                  onChange={setShowAnnual}
+                />
+              </div>
+              <div
+                className="font-controls"
+                role="group"
+                aria-label="Cỡ chữ trong lá số"
+              >
                 <span className="font-controls__label">Cỡ chữ</span>
-                {([
-                  ["small", "Nhỏ"], ["medium", "Vừa"], ["large", "Lớn"],
-                ] as const).map(([size, label]) => (
+                {(
+                  [
+                    ["small", "Nhỏ"],
+                    ["medium", "Vừa"],
+                    ["large", "Lớn"],
+                  ] as const
+                ).map(([size, label]) => (
                   <button
                     key={size}
                     type="button"
                     className={`font-button ${fontSize === size ? "font-button--active" : ""}`}
                     aria-pressed={fontSize === size}
                     onClick={() => setFontSize(size)}
-                  >{label}</button>
+                  >
+                    {label}
+                  </button>
                 ))}
               </div>
-              <div className="mobile-view-switch" role="group" aria-label="Chế độ xem lá số trên điện thoại">
-                <span className="mobile-view-switch__label">Lá số trên điện thoại</span>
+              <div
+                className="mobile-view-switch"
+                role="group"
+                aria-label="Chế độ xem lá số trên điện thoại"
+              >
+                <span className="mobile-view-switch__label">
+                  Lá số trên điện thoại
+                </span>
                 <div className="mobile-view-switch__buttons">
-                  <button type="button" className={`mobile-view-button ${mobileView === "overview" ? "mobile-view-button--active" : ""}`} aria-pressed={mobileView === "overview"} onClick={() => setMobileView("overview")}>Toàn cảnh 12 cung</button>
-                  <button type="button" className={`mobile-view-button ${mobileView === "detail" ? "mobile-view-button--active" : ""}`} aria-pressed={mobileView === "detail"} onClick={() => setMobileView("detail")}>Xem chi tiết</button>
+                  <button
+                    type="button"
+                    className={`mobile-view-button ${mobileView === "overview" ? "mobile-view-button--active" : ""}`}
+                    aria-pressed={mobileView === "overview"}
+                    onClick={() => setMobileView("overview")}
+                  >
+                    Toàn cảnh 12 cung
+                  </button>
+                  <button
+                    type="button"
+                    className={`mobile-view-button ${mobileView === "detail" ? "mobile-view-button--active" : ""}`}
+                    aria-pressed={mobileView === "detail"}
+                    onClick={() => setMobileView("detail")}
+                  >
+                    Xem chi tiết
+                  </button>
                 </div>
-                <p className="mobile-view-note">{mobileView === "overview" ? "Giữ đủ 4 cột trong màn hình; tất cả các sao đang bật được xếp dọc từng dòng. Vuốt dọc để xem các hàng." : "Mỗi sao một dòng, chữ lớn hơn. Vuốt ngang để xem từng cung."}</p>
+                <p className="mobile-view-note">
+                  {mobileView === "overview"
+                    ? "Giữ đủ 4 cột trong màn hình; tất cả các sao đang bật được xếp dọc từng dòng. Vuốt dọc để xem các hàng."
+                    : "Mỗi sao một dòng, chữ lớn hơn. Vuốt ngang để xem từng cung."}
+                </p>
               </div>
               <label className="mobile-palace-picker">
                 <span>Chọn cung</span>
-                <select value={selected ?? ""} onChange={(event) => {
-                  const value = event.target.value;
-                  setSelected(value === "" || Number(value) === chart.menh ? null : Number(value));
-                }}>
-                  <option value="">Mặc định: cung Mệnh ({BRANCHES[chart.menh]})</option>
-                  {chart.palaces.map((palace) => <option key={palace.branchIndex} value={palace.branchIndex}>{palace.house} · {palace.branch}</option>)}
+                <select
+                  value={selected ?? ""}
+                  onChange={(event) => {
+                    const value = event.target.value;
+                    setSelected(
+                      value === "" || Number(value) === chart.menh
+                        ? null
+                        : Number(value),
+                    );
+                  }}
+                >
+                  <option value="">
+                    Mặc định: cung Mệnh ({BRANCHES[chart.menh]})
+                  </option>
+                  {chart.palaces.map((palace) => (
+                    <option key={palace.branchIndex} value={palace.branchIndex}>
+                      {palace.house} · {palace.branch}
+                    </option>
+                  ))}
                 </select>
               </label>
             </div>
 
             <div className="chart-frame">
               <div className="board-caption">
-                <div><span className="board-caption__mark">✦</span><strong>Địa bàn Tử Vi</strong><span className="board-caption__sub">ĐỊA CHI CỐ ĐỊNH · NỀN MÀU NGŨ HÀNH</span></div>
-                <span className="board-instruction">Mặc định kẻ từ cung Mệnh; bấm cung khác để đổi đường nối <Icon name="chevron" size={15} /></span>
+                <div>
+                  <span className="board-caption__mark">✦</span>
+                  <strong>Địa bàn Tử Vi</strong>
+                  <span className="board-caption__sub">
+                    ĐỊA CHI CỐ ĐỊNH · NỀN MÀU NGŨ HÀNH
+                  </span>
+                </div>
+                <span className="board-instruction">
+                  Mặc định kẻ từ cung Mệnh; bấm cung khác để đổi đường nối{" "}
+                  <Icon name="chevron" size={15} />
+                </span>
               </div>
-              <div className={`chart-scroll chart-scroll--${mobileView}`} role="region" aria-label={mobileView === "overview" ? "Địa bàn 12 cung, chế độ toàn cảnh trên điện thoại" : "Địa bàn 12 cung, vuốt ngang trên điện thoại để đọc chi tiết"} tabIndex={0}>
-                <div className="chart-grid" data-font-size={fontSize} data-mobile-view={mobileView} ref={boardRef}>
+              <div
+                className={`chart-scroll chart-scroll--${mobileView}`}
+                role="region"
+                aria-label={
+                  mobileView === "overview"
+                    ? "Địa bàn 12 cung, chế độ toàn cảnh trên điện thoại"
+                    : "Địa bàn 12 cung, vuốt ngang trên điện thoại để đọc chi tiết"
+                }
+                tabIndex={0}
+              >
+                <div
+                  className="chart-grid"
+                  data-font-size={fontSize}
+                  data-mobile-view={mobileView}
+                  ref={boardRef}
+                >
                   {BOARD_POSITIONS.map(({ branch, row, col }) => (
                     <PalaceCell
                       key={branch}
@@ -528,70 +964,164 @@ export default function Home() {
                       isCurrentDaiHan={chart.currentDaiHan === branch}
                       isCurrentTieuHan={chart.currentTieuHan === branch}
                       onSelect={() => selectPalace(branch)}
-                      showMain={showMain} showExtra={showExtra} showCycles={showCycles} showAnnual={showAnnual}
+                      showMain={showMain}
+                      showExtra={showExtra}
+                      showCycles={showCycles}
+                      showAnnual={showAnnual}
                     />
                   ))}
                   <PalaceConnections geometry={connectionGeometry} />
-                  <section className="center-panel" style={{ gridColumn: "2 / span 2", gridRow: "2 / span 2" }} aria-label="Thiên bàn và thông tin lá số">
-                    <div className="center-ornament" aria-hidden="true"><span>✦</span></div>
-                    <div className="center-eyebrow">TỬ VI ĐẨU SỐ · TAM HỢP NAM PHÁI</div>
-                    <h2>{chart.name}</h2>
-                    <p className="center-subtitle">THIÊN BÀN · THÔNG TIN LÁ SỐ</p>
-                    <div className="center-quickfacts">
-                      <span><small>MỆNH</small><b>{BRANCHES[chart.menh]}</b></span>
-                      <span><small>THÂN</small><b>{BRANCHES[chart.than]}</b></span>
-                      <span><small>NGŨ HÀNH CỤC</small><b>{chart.cuc.label}</b></span>
+                  <section
+                    className="center-panel"
+                    style={{ gridColumn: "2 / span 2", gridRow: "2 / span 2" }}
+                    aria-label="Thiên bàn và thông tin lá số"
+                  >
+                    <div className="center-ornament" aria-hidden="true">
+                      <span>✦</span>
                     </div>
-                    <div className="center-divider"><span>Thông tin chi tiết</span></div>
+                    <div className="center-eyebrow">
+                      TỬ VI ĐẨU SỐ · TAM HỢP NAM PHÁI
+                    </div>
+                    <h2>{chart.name}</h2>
+                    <p className="center-subtitle">
+                      THIÊN BÀN · THÔNG TIN LÁ SỐ
+                    </p>
+                    <div className="center-quickfacts">
+                      <span>
+                        <small>MỆNH</small>
+                        <b>{BRANCHES[chart.menh]}</b>
+                      </span>
+                      <span>
+                        <small>THÂN</small>
+                        <b>{BRANCHES[chart.than]}</b>
+                      </span>
+                      <span>
+                        <small>NGŨ HÀNH CỤC</small>
+                        <b>{chart.cuc.label}</b>
+                      </span>
+                    </div>
+                    <div className="center-divider">
+                      <span>Thông tin chi tiết</span>
+                    </div>
                     <dl className="center-info">
-                      <CenterInfo title="Dương lịch sinh" value={dateText(chart.recordedSolar)} />
-                      <CenterInfo title="Âm lịch sinh" value={`${dateText(chart.lunar)}${chart.lunar.leap ? " (nhuận)" : ""}`} />
+                      <CenterInfo
+                        title="Dương lịch sinh"
+                        value={dateText(chart.recordedSolar)}
+                      />
+                      <CenterInfo
+                        title="Âm lịch sinh"
+                        value={`${dateText(chart.lunar)}${chart.lunar.leap ? " (nhuận)" : ""}`}
+                      />
                       <CenterInfo title="Năm sinh" value={chart.birthYear} />
-                      <CenterInfo title="Giờ sinh" value={`Giờ ${chart.hour}`} />
-                      <CenterInfo title="Giới tính" value={chart.gender === "male" ? "Nam" : "Nữ"} />
-                      <CenterInfo title="Âm dương" value={chart.reversed ? "Âm nam / Dương nữ · nghịch" : "Dương nam / Âm nữ · thuận"} />
-                      <CenterInfo title="Năm xem" value={`${submitted.viewYear} · ${chart.viewYear}`} />
-                      <CenterInfo title="Tuổi mụ" value={`${chart.ageMu} tuổi`} />
-                      <CenterInfo title="Đại hạn" value={chart.currentDaiHan === null ? "Chưa vào đại hạn" : chart.palaces[chart.currentDaiHan].house} />
-                      <CenterInfo title="Thân cư" value={chart.palaces[chart.than].house} />
-                      {chart.shiftedLateZi && <CenterInfo title="Ngày dùng để an số" value={dateText(chart.solar)} />}
+                      <CenterInfo
+                        title="Giờ sinh"
+                        value={`Giờ ${chart.hour}`}
+                      />
+                      <CenterInfo
+                        title="Giới tính"
+                        value={chart.gender === "male" ? "Nam" : "Nữ"}
+                      />
+                      <CenterInfo
+                        title="Âm dương"
+                        value={
+                          chart.reversed
+                            ? "Âm nam / Dương nữ · nghịch"
+                            : "Dương nam / Âm nữ · thuận"
+                        }
+                      />
+                      <CenterInfo
+                        title="Năm xem"
+                        value={`${submitted.viewYear} · ${chart.viewYear}`}
+                      />
+                      <CenterInfo
+                        title="Tuổi mụ"
+                        value={`${chart.ageMu} tuổi`}
+                      />
+                      <CenterInfo
+                        title="Đại hạn"
+                        value={
+                          chart.currentDaiHan === null
+                            ? "Chưa vào đại hạn"
+                            : chart.palaces[chart.currentDaiHan].house
+                        }
+                      />
+                      <CenterInfo
+                        title="Thân cư"
+                        value={chart.palaces[chart.than].house}
+                      />
+                      {chart.shiftedLateZi && (
+                        <CenterInfo
+                          title="Ngày dùng để an số"
+                          value={dateText(chart.solar)}
+                        />
+                      )}
                     </dl>
-                    <p className="center-note"><Icon name="info" size={13} /> Mặc định nối từ cung Mệnh. Chạm cung khác để xem tam hợp và xung chiếu; chạm lại để trở về Mệnh.</p>
+                    <p className="center-note">
+                      <Icon name="info" size={13} /> Mặc định nối từ cung Mệnh.
+                      Chạm cung khác để xem tam hợp và xung chiếu; chạm lại để
+                      trở về Mệnh.
+                    </p>
                   </section>
                 </div>
               </div>
               <div className="board-foot">
-                <div className="typography-legend" aria-label="Chú thích cỡ chữ sao">
-                  <span className="typography-legend__main">TỬ VI</span><span>Chính tinh</span>
-                  <span className="typography-legend__extra">Thiên Khôi</span><span>Phụ tinh</span>
-                  <span className="typography-legend__annual">L. Thiên Mã</span><span>Sao lưu</span>
+                <div
+                  className="typography-legend"
+                  aria-label="Chú thích cỡ chữ sao"
+                >
+                  <span className="typography-legend__main">TỬ VI</span>
+                  <span>Chính tinh</span>
+                  <span className="typography-legend__extra">Thiên Khôi</span>
+                  <span>Phụ tinh</span>
+                  <span className="typography-legend__annual">L. Thiên Mã</span>
+                  <span>Sao lưu</span>
                 </div>
                 <div className="legend">
-                  <span><i className="legend-line legend-line--tam" /> Tam hợp (2 đường)</span>
-                  <span><i className="legend-line legend-line--xung" /> Xung chiếu (1 đường)</span>
-                  <span><i className="legend-dot legend-dot--annual" /> Sao lưu niên</span>
+                  <span>
+                    <i className="legend-line legend-line--tam" /> Tam hợp (2
+                    đường)
+                  </span>
+                  <span>
+                    <i className="legend-line legend-line--xung" /> Xung chiếu
+                    (1 đường)
+                  </span>
+                  <span>
+                    <i className="legend-dot legend-dot--annual" /> Sao lưu niên
+                  </span>
                 </div>
-                <span className="swipe-hint">↔ Kéo ngang để xem toàn bộ lá số</span>
+                <span className="swipe-hint">
+                  ↔ Kéo ngang để xem toàn bộ lá số
+                </span>
               </div>
             </div>
           </section>
 
           {/* Luôn giữ khung chú thích đầy đủ ở dưới, kể cả khi mobile đã hiển thị tất cả sao. */}
           {chosen && related && (
-            <section className="detail-panel" aria-labelledby="detail-title" aria-live="polite">
+            <section
+              className="detail-panel"
+              aria-labelledby="detail-title"
+              aria-live="polite"
+            >
               <div className="detail-intro">
                 <span className="section-index">CHÚ THÍCH · CUNG ĐANG XEM</span>
                 <h2 id="detail-title">Cung {chosen.house}</h2>
                 <span className="detail-location">
-                  {chosen.stem} {chosen.branch}{chosen.isThan ? " · Cung Thân" : ""}
+                  {chosen.stem} {chosen.branch}
+                  {chosen.isThan ? " · Cung Thân" : ""}
                   {activeBranch === chart.menh ? " · Mặc định: Mệnh" : ""}
                 </span>
                 <p>
-                  Các thông tin của cung đang xem và các cung liên hệ theo tam phương tứ chính.
-                  Khi chưa chọn cung nào, phần này luôn hiển thị cung Mệnh.
+                  Các thông tin của cung đang xem và các cung liên hệ theo tam
+                  phương tứ chính. Khi chưa chọn cung nào, phần này luôn hiển
+                  thị cung Mệnh.
                 </p>
                 {activeBranch !== chart.menh && (
-                  <button className="back-to-menh" type="button" onClick={() => setSelected(null)}>
+                  <button
+                    className="back-to-menh"
+                    type="button"
+                    onClick={() => setSelected(null)}
+                  >
                     Về cung Mệnh <Icon name="arrow" size={15} />
                   </button>
                 )}
@@ -600,19 +1130,53 @@ export default function Home() {
                 <div className="detail-fact detail-fact--large">
                   <span className="detail-label">CHÍNH TINH</span>
                   <strong className="detail-main-stars">
-                    {chosen.main.length ? chosen.main.map((star) => star.name).join(" · ") : "Vô chính diệu"}
+                    {chosen.main.length
+                      ? chosen.main.map((star) => star.name).join(" · ")
+                      : "Vô chính diệu"}
                   </strong>
                 </div>
                 <div className="detail-fact">
                   <span className="detail-label">ĐẠI HẠN</span>
-                  <strong>{chosen.daiHan?.from}–{chosen.daiHan?.to} tuổi</strong>
+                  <strong>
+                    {chosen.daiHan?.from}–{chosen.daiHan?.to} tuổi
+                  </strong>
                 </div>
                 <div className="detail-fact detail-fact--mobile-stars">
-                  <span className="detail-label">DANH SÁCH SAO ĐẦY ĐỦ CỦA CUNG</span>
-                  {chosen.extra.length > 0 && <div className="detail-star-row"><b>Phụ tinh</b><StarGroup stars={chosen.extra} className="star-group--detail" /></div>}
-                  {chosen.cycles.length > 0 && <div className="detail-star-row"><b>Vòng sao</b><StarGroup stars={chosen.cycles} className="star-group--detail" /></div>}
-                  {chosen.annual.length > 0 && <div className="detail-star-row"><b>Sao lưu</b><StarGroup stars={chosen.annual} className="star-group--detail" /></div>}
-                  {chosen.extra.length === 0 && chosen.cycles.length === 0 && chosen.annual.length === 0 && <span>Không có sao bổ sung trong dữ liệu hiện tại.</span>}
+                  <span className="detail-label">
+                    DANH SÁCH SAO ĐẦY ĐỦ CỦA CUNG
+                  </span>
+                  {chosen.extra.length > 0 && (
+                    <div className="detail-star-row">
+                      <b>Phụ tinh</b>
+                      <StarGroup
+                        stars={chosen.extra}
+                        className="star-group--detail"
+                      />
+                    </div>
+                  )}
+                  {chosen.cycles.length > 0 && (
+                    <div className="detail-star-row">
+                      <b>Vòng sao</b>
+                      <StarGroup
+                        stars={chosen.cycles}
+                        className="star-group--detail"
+                      />
+                    </div>
+                  )}
+                  {chosen.annual.length > 0 && (
+                    <div className="detail-star-row">
+                      <b>Sao lưu</b>
+                      <StarGroup
+                        stars={chosen.annual}
+                        className="star-group--detail"
+                      />
+                    </div>
+                  )}
+                  {chosen.extra.length === 0 &&
+                    chosen.cycles.length === 0 &&
+                    chosen.annual.length === 0 && (
+                      <span>Không có sao bổ sung trong dữ liệu hiện tại.</span>
+                    )}
                 </div>
                 <div className="detail-fact detail-fact--wide">
                   <span className="detail-label">TAM HỢP · 2 CUNG LIÊN HỆ</span>
@@ -624,21 +1188,25 @@ export default function Home() {
                         onClick={() => selectPalace(idx)}
                         className="related-link related-link--tam"
                       >
-                        {chart.palaces[idx].house} <small>({BRANCHES[idx]})</small>
+                        {chart.palaces[idx].house}{" "}
+                        <small>({BRANCHES[idx]})</small>
                         <Icon name="chevron" size={13} />
                       </button>
                     ))}
                   </div>
                 </div>
                 <div className="detail-fact detail-fact--wide">
-                  <span className="detail-label">XUNG CHIẾU · CUNG ĐỐI DIỆN</span>
+                  <span className="detail-label">
+                    XUNG CHIẾU · CUNG ĐỐI DIỆN
+                  </span>
                   <div className="related-links">
                     <button
                       type="button"
                       onClick={() => selectPalace(related.xung)}
                       className="related-link related-link--xung"
                     >
-                      {chart.palaces[related.xung].house} <small>({BRANCHES[related.xung]})</small>
+                      {chart.palaces[related.xung].house}{" "}
+                      <small>({BRANCHES[related.xung]})</small>
                       <Icon name="chevron" size={13} />
                     </button>
                   </div>
@@ -650,8 +1218,15 @@ export default function Home() {
       )}
 
       <footer className="site-footer">
-        <div className="footer-brand"><span>✧</span> TỬ VI ĐẨU SỐ</div>
-        <p>Bộ tính hỗ trợ 14 chính tinh, một số phụ tinh, Tứ Hóa (bảng Toàn Thư), Tuần/Triệt, Đại hạn, Tiểu hạn và một phần sao lưu niên. Chưa có đầy đủ phụ tinh, miếu/vượng/hãm hay luận đoán tự động. Đây là thuật số truyền thống, không phải phương pháp dự đoán có cơ sở khoa học.</p>
+        <div className="footer-brand">
+          <span>✧</span> TỬ VI ĐẨU SỐ
+        </div>
+        <p>
+          Bộ tính hỗ trợ 14 chính tinh, một số phụ tinh, Tứ Hóa (bảng Toàn Thư),
+          Tuần/Triệt, Đại hạn, Tiểu hạn và một phần sao lưu niên. Chưa có đầy đủ
+          phụ tinh, miếu/vượng/hãm hay luận đoán tự động. Đây là thuật số truyền
+          thống, không phải phương pháp dự đoán có cơ sở khoa học.
+        </p>
       </footer>
     </div>
   );
