@@ -386,7 +386,7 @@ export default function Home() {
   const [selected, setSelected] = useState<number | null>(null);
   const [showMain, setShowMain] = useState(true);
   const [showExtra, setShowExtra] = useState(true);
-  const [showCycles, setShowCycles] = useState(false);
+  const [showCycles, setShowCycles] = useState(true);
   const [showAnnual, setShowAnnual] = useState(true);
   const [fontSize, setFontSize] = useState<"small" | "medium" | "large">(
     "medium",
@@ -566,7 +566,7 @@ export default function Home() {
     setSelected(null);
     setShowMain(true);
     setShowExtra(true);
-    setShowCycles(false);
+    setShowCycles(true);
     setShowAnnual(true);
     setFontSize("medium");
     setMobileView("overview");

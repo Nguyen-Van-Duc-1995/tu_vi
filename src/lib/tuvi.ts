@@ -404,6 +404,28 @@ export function createTuViChart(input: BirthInput): Chart {
   add(locTon, "Lộc Tồn", "good");
   add(locTon + 1, "Kình Dương", "bad");
   add(locTon - 1, "Đà La", "bad");
+
+  // Vòng Lộc Tồn (Bác Sĩ): Bác Sĩ đồng cung với Lộc Tồn.
+  // Dương nam, Âm nữ an thuận; Âm nam, Dương nữ an nghịch.
+  // Quan Phủ khác Quan Phù thuộc vòng Thái Tuế.
+  const bacSiCycle = [
+    "Bác Sĩ",
+    "Lực Sĩ",
+    "Thanh Long",
+    "Tiểu Hao",
+    "Tướng Quân",
+    "Tấu Thư",
+    "Phi Liêm",
+    "Hỷ Thần",
+    "Bệnh Phù",
+    "Đại Hao",
+    "Phục Binh",
+    "Quan Phủ",
+  ] as const;
+  bacSiCycle.forEach((name, step) =>
+    add(mod(locTon + direction * step), name, "cycle"),
+  );
+
   add(THIEN_KHOI[stemOfYear], "Thiên Khôi", "good");
   add(THIEN_VIET[stemOfYear], "Thiên Việt", "good");
 
