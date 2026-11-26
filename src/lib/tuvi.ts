@@ -273,6 +273,9 @@ function placeFourteenStars(
   ziWei: number,
   add: (branch: number, name: string, kind: StarKind) => void,
 ): void {
+  // Thiên La, Địa Võng cố định theo địa chi
+  add(4, "Thiên La", "bad"); // Thìn
+  add(10, "Địa Võng", "bad"); // Tuất
   const tuViGroup: Array<[string, number]> = [
     ["Tử Vi", 0],
     ["Thiên Cơ", -1],
