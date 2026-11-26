@@ -519,6 +519,12 @@ export function createTuViChart(input: BirthInput): Chart {
   // Dùng effectiveMonth để thống nhất quy ước tháng nhuận của ứng dụng.
   add(mod(9 + effectiveMonth - 1), "Thiên Hình", "bad");
 
+  // Thiên Riêu (Thiên Diêu): tháng Giêng khởi tại Sửu (index 1),
+  // đếm thuận đến tháng sinh âm lịch. Cách Thiên Hình 4 cung theo chiều thuận.
+  // Chỉ bổ sung Thiên Riêu; không tự an thêm Thiên Y.
+  add(mod(1 + effectiveMonth - 1), "Thiên Riêu", "bad");
+  add(mod(1 + effectiveMonth - 1), "Thiên Y", "bad");
+
   // Sao theo thang am va gio sinh.
   const taPhu = mod(4 + effectiveMonth - 1);
   const huuBat = mod(10 - (effectiveMonth - 1));
