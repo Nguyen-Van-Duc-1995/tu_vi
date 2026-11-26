@@ -294,10 +294,10 @@ function PalaceCell({
           {palace.tuan && <span className="tag tag--void">Tuần</span>}
           {palace.triet && <span className="tag tag--void">Triệt</span>}
           {isCurrentDaiHan && (
-            <span className="tag tag--current">Đại hạn hiện tại</span>
+            <span className="tag tag--current">Đại vận hiện tại</span>
           )}
           {isCurrentTieuHan && (
-            <span className="tag tag--year">Tiểu hạn năm xem</span>
+            <span className="tag tag--year">Tiểu vận năm xem</span>
           )}
         </div>
       )}
@@ -328,7 +328,7 @@ function PalaceCell({
         )}
       </div>
       <div className="palace-footer">
-        <span>ĐẠI HẠN</span>
+        <span>ĐẠI VẬN</span>
         <strong>
           {palace.daiHan?.from}–{palace.daiHan?.to} tuổi
         </strong>
@@ -844,7 +844,7 @@ export default function Home() {
       viewYear < 1900 ||
       viewYear > 2100
     ) {
-      setFormError("Năm xem hạn phải gồm 4 chữ số, từ 1900 đến 2100.");
+      setFormError("Năm xem vận phải gồm 4 chữ số, từ 1900 đến 2100.");
       return;
     }
     setFormError("");
@@ -1040,13 +1040,13 @@ export default function Home() {
             </select>
           </label>
           <label className="field field--view-year">
-            <span>Năm xem hạn</span>
+            <span>Năm xem vận</span>
             <input
               type="text"
               inputMode="numeric"
               autoComplete="off"
               maxLength={4}
-              aria-label="Năm xem hạn"
+              aria-label="Năm xem vận"
               value={viewYearText}
               onChange={(event) => {
                 setViewYearText(numericText(event.target.value, 4));
@@ -1365,10 +1365,10 @@ export default function Home() {
                           value={`${chart.ageMu} tuổi`}
                         />
                         <CenterInfo
-                          title="Đại hạn"
+                          title="Đại vận"
                           value={
                             chart.currentDaiHan === null
-                              ? "Chưa vào đại hạn"
+                              ? "Chưa vào đại vận"
                               : chart.palaces[chart.currentDaiHan].house
                           }
                         />
@@ -1473,7 +1473,7 @@ export default function Home() {
                   </strong>
                 </div>
                 <div className="detail-fact">
-                  <span className="detail-label">ĐẠI HẠN</span>
+                  <span className="detail-label">ĐẠI VẬN</span>
                   <strong>
                     {chosen.daiHan?.from}–{chosen.daiHan?.to} tuổi
                   </strong>
@@ -1560,10 +1560,8 @@ export default function Home() {
         </div>
         <p>
           Bộ tính hỗ trợ 14 chính tinh, một số phụ tinh, Tứ Hóa (bảng Toàn Thư),
-          Tuần/Triệt, Đại hạn, Tiểu hạn và một phần sao lưu niên. Chưa có đầy đủ
-          phụ tinh hay luận đoán tự động. 14 chính tinh có ký hiệu M/V/Đ/B/H.
-          Đây là thuật số truyền thống, không phải phương pháp dự đoán có cơ sở
-          khoa học.
+          Tuần/Triệt, Đại vận, Tiểu vận và một phần sao lưu niên. 14 chính tinh
+          có ký hiệu M/V/Đ/B/H. Đây là thuật số truyền thống.
         </p>
       </footer>
     </div>
