@@ -490,6 +490,8 @@ export function createTuViChart(input: BirthInput): Chart {
   add(locTon, "Lộc Tồn", "good");
   add(locTon + 1, "Kình Dương", "bad");
   add(locTon - 1, "Đà La", "bad");
+  // Quốc Ấn: từ Lộc Tồn đếm thuận đến cung thứ 9
+  add(mod(locTon + 8), "Quốc Ấn", "good");
 
   // Vòng Lộc Tồn (Bác Sĩ): Bác Sĩ đồng cung với Lộc Tồn.
   // Dương nam, Âm nữ an thuận; Âm nam, Dương nữ an nghịch.
