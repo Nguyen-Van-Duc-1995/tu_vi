@@ -10,13 +10,15 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
+  colorScheme: "light",
+  themeColor: "#f3f3f0",
 };
 
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="vi">
+    <html lang="vi" style={{ colorScheme: "only light" }}>
       <body>{children}</body>
     </html>
   );

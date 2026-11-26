@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  useEffect,
   useLayoutEffect,
   useMemo,
   useRef,
@@ -385,6 +386,9 @@ export default function Home() {
   );
   const [formError, setFormError] = useState("");
   const [submitted, setSubmitted] = useState<BirthInput>(defaultInput);
+  // Mỗi lần lập lá số thành công (kể cả cùng dữ liệu), cuộn xuống kết quả.
+  const [scrollRequest, setScrollRequest] = useState(0);
+  const resultSectionRef = useRef<HTMLElement>(null);
   // null = no manual override. In this state, show the three lines from Mệnh.
   // Selecting another palace overrides Mệnh; selecting it again returns to Mệnh.
   const [selected, setSelected] = useState<number | null>(null);
@@ -412,6 +416,22 @@ export default function Home() {
   }, [submitted]);
 
   const chart = result.chart;
+
+  useEffect(() => {
+    if (scrollRequest === 0 || !chart) return;
+
+    // Đợi React cập nhật DOM của lá số trước khi cuộn.
+    const frame = window.requestAnimationFrame(() => {
+      resultSectionRef.current?.scrollIntoView({
+        behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
+          ? "auto"
+          : "smooth",
+        block: "start",
+      });
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, [scrollRequest, chart]);
   // Nếu chưa chọn thủ công, mọi thông tin và đường nối đều dựa trên cung Mệnh.
   const activeBranch = chart ? selected ?? chart.menh : null;
   const chosen =
@@ -643,8 +663,10 @@ export default function Home() {
     setDraft(nextInput);
     setSubmitted(nextInput);
     setSelected(null);
+    setScrollRequest((value) => value + 1);
   };
   const resetAll = () => {
+    setScrollRequest(0);
     setFormError("");
     setDayText(String(defaultInput.day));
     setYearText(String(defaultInput.year));
@@ -877,7 +899,11 @@ export default function Home() {
 
       {chart && (
         <>
-          <section className="result-section" aria-labelledby="result-title">
+          <section
+            ref={resultSectionRef}
+            className="result-section"
+            aria-labelledby="result-title"
+          >
             <div className="result-heading">
               <div>
                 <span className="section-index">BƯỚC 02 / ĐỊA BÀN TỬ VI</span>

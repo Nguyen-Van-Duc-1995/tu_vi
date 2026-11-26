@@ -10,7 +10,7 @@
  */
 /* Prefer a fixed light palette even when the phone uses dark mode. */
 :root {
-  color-scheme: light; /* Fallback for older browsers. */
+  color-scheme: only light !important;
   color-scheme: only light; /* Prevent supported browsers from auto-darkening this page. */
   --bg: #f3f3f0;
   --paper: #fff;
@@ -2003,4 +2003,52 @@ select:focus-visible,
     text-align: center;
     line-height: 1.3;
   }
+}
+
+/* Luôn dùng giao diện sáng */
+html {
+  color-scheme: only light !important;
+}
+
+body {
+  background-color: #f3f3f0;
+  color: #17231f;
+}
+
+/* Nền lá số, thiên bàn và chú thích */
+.chart-frame,
+.board-caption,
+.board-foot,
+.center-panel,
+.form-panel,
+.detail-panel {
+  color-scheme: only light !important;
+  background-color: #ffffff;
+}
+
+/* Giữ nguyên 5 màu địa chi */
+.palace[data-element="hoa"] {
+  background-color: #da3c3d;
+}
+
+.palace[data-element="tho"] {
+  background-color: #f3d34c;
+}
+
+.palace[data-element="moc"] {
+  background-color: #6ed36d;
+}
+
+.palace[data-element="kim"] {
+  background-color: #bfbfbf;
+}
+
+.palace[data-element="thuy"] {
+  background-color: #65c9ee;
+}
+
+/* Không tự phóng đại chữ trong lá số */
+.chart-grid {
+  -webkit-text-size-adjust: none;
+  text-size-adjust: none;
 }
