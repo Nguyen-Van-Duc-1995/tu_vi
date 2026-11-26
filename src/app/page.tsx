@@ -1420,9 +1420,6 @@ export default function Home() {
                       niên
                     </span>
                   </div>
-                  <span className="swipe-hint">
-                    ↔ Kéo ngang để xem toàn bộ lá số
-                  </span>
                 </div>
               </div>
             </div>
