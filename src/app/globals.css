@@ -8,8 +8,10 @@
  * Ty (Tý) / Hoi: xanh duong #65c9ee
  * Chu y: "Tỵ" (hoa) KHAC "Tý" (thuy).
  */
+/* Prefer a fixed light palette even when the phone uses dark mode. */
 :root {
-  color-scheme: light;
+  color-scheme: light; /* Fallback for older browsers. */
+  color-scheme: only light; /* Prevent supported browsers from auto-darkening this page. */
   --bg: #f3f3f0;
   --paper: #fff;
   --text: #17231f;
@@ -579,6 +581,14 @@ select:focus-visible,
   width: 100%;
   background: var(--border);
 }
+/* Prevent mobile browser text inflation from breaking the 4x4 chart layout.
+   Scope this to the chart; keep forms and the rest of the page accessible. */
+.chart-grid,
+.chart-grid * {
+  -webkit-text-size-adjust: none;
+  text-size-adjust: none;
+}
+
 .chart-grid[data-font-size="small"] {
   --palace-width: 232px;
   --type-branch: 23px;
