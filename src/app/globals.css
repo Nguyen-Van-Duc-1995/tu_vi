@@ -560,11 +560,11 @@ select:focus-visible,
 .chart-grid {
   /* Controls the entire 4x4 grid, including the middle 2x2 panel. */
   --palace-width: 254px;
-  --type-branch: 27px;
+  --type-branch: 19px;
   --type-stem: 11px;
   --type-house: 12px;
   --type-main: 17px;
-  --type-extra: 12px;
+  --type-extra: 15px;
   --type-annual: 11px;
   --type-meta: 10px;
   --type-center-name: 30px;
@@ -712,7 +712,7 @@ select:focus-visible,
   color: #080808;
   font-size: var(--type-branch);
   font-family: Georgia, "Times New Roman", serif;
-  font-weight: 900;
+  font-weight: 700;
   line-height: 1.05;
 }
 .palace-heading__house {
@@ -1408,7 +1408,7 @@ select:focus-visible,
     min-height: 30px;
   }
   .palace-heading__branch {
-    font-size: 18px;
+    font-size: 12px;
   }
   .star--main {
     font-size: 11px;
