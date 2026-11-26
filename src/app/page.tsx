@@ -581,74 +581,121 @@ export default function Home() {
   const related = activeBranch !== null ? relatedPalaces(activeBranch) : null;
   const boardRef = useRef<HTMLDivElement>(null);
   const chartFrameRef = useRef<HTMLDivElement>(null);
-  const [desktopFit, setDesktopFit] = useState<{
+  // Chỉ dùng MỘT trạng thái cho tỷ lệ thu nhỏ và chiều rộng hiển thị.
+  // Tránh trường hợp hai effect đo ở hai thời điểm khác nhau khi trang mới tải.
+  const [desktopLayout, setDesktopLayout] = useState<{
     scale: number;
     height: number;
+    visibleWidth: number;
   } | null>(null);
+  const desktopFit = useMemo(
+    () =>
+      desktopLayout && desktopLayout.scale < 1
+        ? { scale: desktopLayout.scale, height: desktopLayout.height }
+        : null,
+    [desktopLayout],
+  );
+  const chartVisibleWidth = desktopLayout?.visibleWidth ?? null;
   const [connectionGeometry, setConnectionGeometry] =
     useState<ConnectionGeometry | null>(null);
 
-  // Desktop: thu nhỏ cả khung lá số, không thu nhỏ form và chú thích bên dưới.
+  // Tính đồng thời độ scale và chiều rộng thực tế ngay khi DOM đã có kích thước.
+  // offsetWidth/offsetHeight là kích thước GỐC, không bị CSS transform ảnh hưởng.
   useLayoutEffect(() => {
     const frame = chartFrameRef.current;
-
     if (!frame || !chart) {
-      setDesktopFit(null);
+      setDesktopLayout(null);
       return;
     }
 
     const desktop = window.matchMedia("screen and (min-width: 769px)");
+    let rafId = 0;
+    let disposed = false;
 
-    const resizeChart = () => {
+    const measureNow = () => {
+      if (disposed) return;
       if (!desktop.matches) {
-        setDesktopFit(null);
+        setDesktopLayout((prev) => (prev === null ? prev : null));
         return;
       }
 
-      // offsetHeight là chiều cao layout gốc, không bị ảnh hưởng bởi scale().
-      const frameHeight = frame.offsetHeight;
-      if (!frameHeight) {
-        setDesktopFit(null);
-        return;
-      }
+      const naturalWidth = frame.offsetWidth;
+      const naturalHeight = frame.offsetHeight;
+      if (!naturalWidth || !naturalHeight) return;
 
       const maxHeight = Math.max(1, Math.floor(window.innerHeight * 0.95));
-      // Chừa 1px để tránh vượt giới hạn do offsetHeight làm tròn số.
-      const naturalHeight = frameHeight + 1;
+      const rawScale = Math.min(1, maxHeight / (naturalHeight + 1));
+      // Tối đa 4 chữ số thập phân để chống render lặp do sai số hình học.
+      const scale =
+        rawScale >= 0.9999 ? 1 : Math.round(rawScale * 10000) / 10000;
+      const next = {
+        scale,
+        height: scale < 1 ? maxHeight : naturalHeight,
+        visibleWidth: Math.round(naturalWidth * scale * 10) / 10,
+      };
 
-      if (naturalHeight <= maxHeight) {
-        setDesktopFit(null);
-        return;
-      }
-
-      const scale = maxHeight / naturalHeight;
-      const height = maxHeight;
-
-      setDesktopFit((prev) =>
-        prev?.scale === scale && prev.height === height
+      setDesktopLayout((prev) =>
+        prev &&
+        prev.scale === next.scale &&
+        prev.height === next.height &&
+        prev.visibleWidth === next.visibleWidth
           ? prev
-          : { scale, height },
+          : next,
       );
     };
 
-    resizeChart();
+    const scheduleMeasure = () => {
+      if (disposed) return;
+      if (rafId) window.cancelAnimationFrame(rafId);
+      rafId = window.requestAnimationFrame(() => {
+        rafId = 0;
+        measureNow();
+      });
+    };
 
+    // useLayoutEffect chạy trước paint: căn đúng ngay lần hiển thị đầu.
+    measureNow();
+    // Đo lại sau paint vì CSS/font và dữ liệu localStorage có thể vừa ổn định.
+    scheduleMeasure();
+
+    // ResizeObserver phát hiện nội dung lá số thay đổi mà KHÔNG resize cửa sổ.
     const observer =
       typeof ResizeObserver !== "undefined"
-        ? new ResizeObserver(resizeChart)
+        ? new ResizeObserver(scheduleMeasure)
         : null;
     observer?.observe(frame);
+    if (boardRef.current) observer?.observe(boardRef.current);
 
-    // Chiều cao viewport có thể đổi dù chiều cao nội dung không đổi.
-    window.addEventListener("resize", resizeChart);
-    desktop.addEventListener("change", resizeChart);
+    // Zoom, xoay màn hình, browser UI và font tải muộn đều được cập nhật.
+    window.addEventListener("resize", scheduleMeasure);
+    window.addEventListener("pageshow", scheduleMeasure);
+    desktop.addEventListener("change", scheduleMeasure);
+    window.visualViewport?.addEventListener("resize", scheduleMeasure);
+    document.fonts?.addEventListener("loadingdone", scheduleMeasure);
+    void document.fonts?.ready.then(() => {
+      if (!disposed) scheduleMeasure();
+    });
 
     return () => {
+      disposed = true;
+      if (rafId) window.cancelAnimationFrame(rafId);
       observer?.disconnect();
-      window.removeEventListener("resize", resizeChart);
-      desktop.removeEventListener("change", resizeChart);
+      window.removeEventListener("resize", scheduleMeasure);
+      window.removeEventListener("pageshow", scheduleMeasure);
+      desktop.removeEventListener("change", scheduleMeasure);
+      window.visualViewport?.removeEventListener("resize", scheduleMeasure);
+      document.fonts?.removeEventListener("loadingdone", scheduleMeasure);
     };
-  }, [chart]);
+  }, [
+    chart,
+    storageReady,
+    fontSize,
+    mobileView,
+    showMain,
+    showExtra,
+    showCycles,
+    showAnnual,
+  ]);
 
   useLayoutEffect(() => {
     const board = boardRef.current;
@@ -825,7 +872,16 @@ export default function Home() {
   };
 
   return (
-    <div className="app-shell">
+    <div
+      className="app-shell app-shell--align-to-chart"
+      style={
+        chartVisibleWidth !== null
+          ? ({
+              "--chart-visible-width": `${chartVisibleWidth}px`,
+            } as CSSProperties)
+          : undefined
+      }
+    >
       <header className="masthead">
         <div className="masthead-identity">
           <div className="brand-mark" aria-hidden="true">
