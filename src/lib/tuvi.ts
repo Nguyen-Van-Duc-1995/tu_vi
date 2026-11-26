@@ -299,6 +299,10 @@ function placeFourteenStars(
 }
 
 const LOC_TON = [2, 3, 5, 6, 5, 6, 8, 9, 11, 0];
+// Thiên Trù an theo thiên can năm sinh, index theo BRANCHES (Tý=0...Hợi=11).
+// Giáp Tỵ, Ất Ngọ, Bính Tý, Đinh Tỵ, Mậu Ngọ, Kỷ Thân,
+// Canh Dần, Tân Ngọ, Nhâm Dậu, Quý Tuất.
+const THIEN_TRU = [5, 6, 0, 5, 6, 8, 2, 6, 9, 10] as const;
 const THIEN_KHOI = [1, 0, 11, 11, 1, 0, 6, 6, 3, 3];
 const THIEN_VIET = [7, 8, 9, 9, 7, 8, 2, 2, 5, 5];
 const LUU_VAN_XUONG = [5, 6, 8, 9, 8, 9, 11, 0, 2, 3];
@@ -480,6 +484,8 @@ export function createTuViChart(input: BirthInput): Chart {
   );
 
   // Sao theo can nam sinh.
+  // Thien Tru co dinh theo can nam sinh, khong theo nam xem han.
+  add(THIEN_TRU[stemOfYear], "Thiên Trù", "good");
   const locTon = LOC_TON[stemOfYear];
   add(locTon, "Lộc Tồn", "good");
   add(locTon + 1, "Kình Dương", "bad");
@@ -508,6 +514,10 @@ export function createTuViChart(input: BirthInput): Chart {
 
   add(THIEN_KHOI[stemOfYear], "Thiên Khôi", "good");
   add(THIEN_VIET[stemOfYear], "Thiên Việt", "good");
+
+  // Thiên Hình: tháng Giêng khởi tại Dậu (index 9), đếm thuận theo tháng âm.
+  // Dùng effectiveMonth để thống nhất quy ước tháng nhuận của ứng dụng.
+  add(mod(9 + effectiveMonth - 1), "Thiên Hình", "bad");
 
   // Sao theo thang am va gio sinh.
   const taPhu = mod(4 + effectiveMonth - 1);
@@ -570,6 +580,10 @@ export function createTuViChart(input: BirthInput): Chart {
   thaiTueCycle.forEach((name, step) =>
     add(mod(branchOfYear + step), name, "cycle"),
   );
+  // Thiên Không: đồng cung Thiếu Dương, ngay sau Thái Tuế theo chiều thuận.
+  // Khác hoàn toàn Địa Không (an theo giờ sinh).
+  add(mod(branchOfYear + 1), "Thiên Không", "bad");
+
   const trangSinhCycle = [
     "Tràng Sinh",
     "Mộc Dục",
