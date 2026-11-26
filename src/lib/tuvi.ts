@@ -470,6 +470,15 @@ export function createTuViChart(input: BirthInput): Chart {
   add(mod(menh + branchOfYear), "Thiên Tài", "good");
   add(mod(than + branchOfYear), "Thiên Thọ", "good");
 
+  // Đẩu Quân (Nguyệt Tướng): từ Thái Tuế năm sinh khởi tháng Giêng,
+  // đếm nghịch đến tháng sinh, tại đó khởi giờ Tý rồi đếm thuận đến giờ sinh.
+  // Dùng effectiveMonth để thống nhất cách xử lý tháng nhuận với Mệnh/Thân.
+  add(
+    mod(branchOfYear - (effectiveMonth - 1) + hourIndex),
+    "Đẩu Quân",
+    "neutral",
+  );
+
   // Sao theo can nam sinh.
   const locTon = LOC_TON[stemOfYear];
   add(locTon, "Lộc Tồn", "good");
