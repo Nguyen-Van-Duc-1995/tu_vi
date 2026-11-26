@@ -72,7 +72,12 @@ export type StarKind =
   | "hoa"
   | "cycle"
   | "annual";
-export type Star = { name: string; kind: StarKind };
+export type StarBrightness = "M" | "V" | "Đ" | "B" | "H";
+export type Star = {
+  name: string;
+  kind: StarKind;
+  brightness?: StarBrightness;
+};
 export type Palace = {
   branchIndex: number;
   branch: (typeof BRANCHES)[number];
@@ -119,6 +124,54 @@ export type Chart = {
   currentTieuHan: number;
   palaces: Palace[];
 };
+
+/**
+ * Độ sáng 14 chính tinh theo địa chi ĐỊA BÀN, không theo tên cung chức.
+ * Cột được cố định đúng thứ tự BRANCHES:
+ *          Tý  Sửu Dần Mão Thìn Tỵ  Ngọ Mùi Thân Dậu Tuất Hợi
+ * Ký hiệu: M = Miếu, V = Vượng, Đ = Đắc, B = Bình, H = Hãm.
+ * Quy ước tham chiếu: https://www.etuvi.vn/kien-thuc/mieu-vuong-dac-binh-ham/
+ * Một số phái khác dùng bảng hơi khác; giữ riêng dữ liệu để tiện thay bảng.
+ */
+export const MAIN_STAR_BRIGHTNESS: Readonly<
+  Record<string, ReadonlyArray<StarBrightness>>
+> = {
+  "Tử Vi": ["B", "Đ", "M", "B", "V", "M", "M", "Đ", "M", "B", "V", "B"],
+  "Thiên Cơ": ["Đ", "Đ", "H", "M", "M", "V", "Đ", "Đ", "V", "M", "M", "H"],
+  "Thái Dương": ["H", "Đ", "V", "V", "V", "M", "M", "Đ", "H", "H", "H", "H"],
+  "Vũ Khúc": ["V", "M", "V", "Đ", "M", "H", "V", "M", "V", "Đ", "M", "H"],
+  "Thiên Đồng": ["V", "H", "M", "Đ", "H", "Đ", "H", "H", "M", "H", "H", "Đ"],
+  "Liêm Trinh": ["V", "Đ", "V", "H", "M", "H", "V", "Đ", "V", "H", "M", "H"],
+  "Thiên Phủ": ["M", "B", "M", "B", "V", "Đ", "M", "Đ", "M", "B", "V", "Đ"],
+  "Thái Âm": ["V", "Đ", "H", "H", "H", "H", "H", "Đ", "V", "M", "M", "M"],
+  "Tham Lang": ["H", "M", "Đ", "H", "V", "H", "H", "M", "Đ", "H", "V", "H"],
+  "Cự Môn": ["V", "H", "V", "M", "H", "H", "V", "H", "Đ", "M", "H", "Đ"],
+  "Thiên Tướng": ["V", "Đ", "M", "H", "V", "Đ", "V", "Đ", "M", "H", "V", "Đ"],
+  "Thiên Lương": ["V", "Đ", "V", "V", "M", "H", "M", "Đ", "V", "H", "M", "H"],
+  "Thất Sát": ["M", "Đ", "M", "H", "H", "V", "M", "Đ", "M", "H", "H", "V"],
+  "Phá Quân": ["M", "V", "H", "H", "Đ", "H", "M", "V", "H", "H", "Đ", "H"],
+};
+
+export const BRIGHTNESS_NAME: Readonly<Record<StarBrightness, string>> = {
+  M: "Miếu",
+  V: "Vượng",
+  Đ: "Đắc",
+  B: "Bình",
+  H: "Hãm",
+};
+
+export function getMainStarBrightness(
+  starName: string,
+  branchIndex: number,
+): StarBrightness | undefined {
+  if (
+    !Number.isInteger(branchIndex) ||
+    branchIndex < 0 ||
+    branchIndex >= BRANCHES.length
+  )
+    return undefined;
+  return MAIN_STAR_BRIGHTNESS[starName]?.[branchIndex];
+}
 
 const mod = (x: number, n = 12) => ((x % n) + n) % n;
 const indexOf = (branch: (typeof BRANCHES)[number]) => BRANCHES.indexOf(branch);
@@ -390,8 +443,15 @@ export function createTuViChart(input: BirthInput): Chart {
 
   const add = (branch: number, name: string, kind: StarKind): void => {
     const palace = palaces[mod(branch)];
-    if (kind === "main") palace.main.push({ name, kind });
-    else if (kind === "cycle") palace.cycles.push({ name, kind });
+    if (kind === "main") {
+      const brightness = getMainStarBrightness(name, palace.branchIndex);
+      if (!brightness) {
+        throw new Error(
+          `Missing main-star brightness: ${name} at ${palace.branch}`,
+        );
+      }
+      palace.main.push({ name, kind, brightness });
+    } else if (kind === "cycle") palace.cycles.push({ name, kind });
     else if (kind === "annual") palace.annual.push({ name, kind });
     else palace.extra.push({ name, kind });
   };

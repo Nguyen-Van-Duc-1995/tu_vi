@@ -178,6 +178,9 @@ function StarGroup({
           key={`${star.kind}-${star.name}`}
         >
           {star.name}
+          {star.kind === "main" && star.brightness
+            ? `\u00a0(${star.brightness})`
+            : null}
         </span>
       ))}
     </div>
@@ -1171,6 +1174,7 @@ export default function Home() {
                   >
                     <span className="typography-legend__main">TỬ VI</span>
                     <span>Chính tinh</span>
+                    <span>M: Miếu · V: Vượng · Đ: Đắc · B: Bình · H: Hãm</span>
                     <span className="typography-legend__extra">Thiên Khôi</span>
                     <span>Phụ tinh</span>
                     <span className="typography-legend__annual">
@@ -1235,7 +1239,12 @@ export default function Home() {
                   <span className="detail-label">CHÍNH TINH</span>
                   <strong className="detail-main-stars">
                     {chosen.main.length
-                      ? chosen.main.map((star) => star.name).join(" · ")
+                      ? chosen.main
+                          .map(
+                            (star) =>
+                              `${star.name}${star.brightness ? ` (${star.brightness})` : ""}`,
+                          )
+                          .join(" · ")
                       : "Vô chính diệu"}
                   </strong>
                 </div>
@@ -1328,8 +1337,9 @@ export default function Home() {
         <p>
           Bộ tính hỗ trợ 14 chính tinh, một số phụ tinh, Tứ Hóa (bảng Toàn Thư),
           Tuần/Triệt, Đại hạn, Tiểu hạn và một phần sao lưu niên. Chưa có đầy đủ
-          phụ tinh, miếu/vượng/hãm hay luận đoán tự động. Đây là thuật số truyền
-          thống, không phải phương pháp dự đoán có cơ sở khoa học.
+          phụ tinh hay luận đoán tự động. 14 chính tinh có ký hiệu M/V/Đ/B/H.
+          Đây là thuật số truyền thống, không phải phương pháp dự đoán có cơ sở
+          khoa học.
         </p>
       </footer>
     </div>
