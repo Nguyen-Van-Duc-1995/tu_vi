@@ -273,9 +273,6 @@ function placeFourteenStars(
   ziWei: number,
   add: (branch: number, name: string, kind: StarKind) => void,
 ): void {
-  // Thiên La, Địa Võng cố định theo địa chi
-  add(4, "Thiên La", "bad"); // Thìn
-  add(10, "Địa Võng", "bad"); // Tuất
   const tuViGroup: Array<[string, number]> = [
     ["Tử Vi", 0],
     ["Thiên Cơ", -1],
@@ -461,6 +458,17 @@ export function createTuViChart(input: BirthInput): Chart {
 
   const ziWei = calculateTuViPosition(lunar.day, cucNumber);
   placeFourteenStars(ziWei, add);
+
+  // Hai sao co dinh tai dia ban, khong phu thuoc ngay gio sinh.
+  // Thin = index 4, Tuat = index 10 (BRANCHES).
+  add(4, "Thiên La", "bad");
+  add(10, "Địa Võng", "bad");
+
+  // Thiên Tài: lấy cung Mệnh làm năm Tý, đếm thuận đến địa chi năm sinh.
+  // Thiên Thọ: lấy cung Thân làm năm Tý, đếm thuận tương tự.
+  // branchOfYear là index 0..11 (Tý -> Hợi), không phải năm xem hạn.
+  add(mod(menh + branchOfYear), "Thiên Tài", "good");
+  add(mod(than + branchOfYear), "Thiên Thọ", "good");
 
   // Sao theo can nam sinh.
   const locTon = LOC_TON[stemOfYear];
