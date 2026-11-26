@@ -34,6 +34,53 @@ const defaultInput: BirthInput = {
   lunarLeap: false,
 };
 
+// Lưu dữ liệu trên trình duyệt, không cần backend và không phụ thuộc vào tài khoản.
+const TUVI_STORAGE_KEY = "tuvi-nam-phai:chart-session:v1";
+
+type StoredChartSession = {
+  draft: BirthInput;
+  submitted: BirthInput;
+  dayText: string;
+  yearText: string;
+  viewYearText: string;
+  selected: number | null;
+  showMain: boolean;
+  showExtra: boolean;
+  showCycles: boolean;
+  showAnnual: boolean;
+  fontSize: "small" | "medium" | "large";
+  mobileView: "overview" | "detail";
+};
+
+// Kiểm tra dữ liệu đọc từ localStorage trước khi khôi phục vào form.
+function isBirthInput(value: unknown): value is BirthInput {
+  if (!value || typeof value !== "object") return false;
+  const input = value as Partial<BirthInput>;
+  return (
+    typeof input.name === "string" &&
+    (input.calendar === "solar" || input.calendar === "lunar") &&
+    Number.isInteger(input.day) &&
+    input.day! >= 1 &&
+    input.day! <= 31 &&
+    Number.isInteger(input.month) &&
+    input.month! >= 1 &&
+    input.month! <= 12 &&
+    Number.isInteger(input.year) &&
+    input.year! >= 1900 &&
+    input.year! <= 2100 &&
+    typeof input.time === "string" &&
+    /^(?:[01]\d|2[0-3]):[0-5]\d$/.test(input.time) &&
+    (input.gender === "male" || input.gender === "female") &&
+    Number.isInteger(input.viewYear) &&
+    input.viewYear! >= 1900 &&
+    input.viewYear! <= 2100 &&
+    (input.timeZone === undefined ||
+      input.timeZone === 7 ||
+      input.timeZone === 8) &&
+    (input.lunarLeap === undefined || typeof input.lunarLeap === "boolean")
+  );
+}
+
 /**
  * Địa chi có vị trí cố định và màu CỐ ĐỊNH đúng ảnh tham khảo.
  * Chỉ số: Tý Sửu Dần Mão Thìn Tỵ Ngọ Mùi Thân Dậu Tuất Hợi.
@@ -386,6 +433,8 @@ export default function Home() {
   );
   const [formError, setFormError] = useState("");
   const [submitted, setSubmitted] = useState<BirthInput>(defaultInput);
+  // Chỉ ghi localStorage sau khi đã đọc dữ liệu cũ: không ghi đè bằng dữ liệu mẫu.
+  const [storageReady, setStorageReady] = useState(false);
   // Mỗi lần lập lá số thành công (kể cả cùng dữ liệu), cuộn xuống kết quả.
   const [scrollRequest, setScrollRequest] = useState(0);
   const resultSectionRef = useRef<HTMLElement>(null);
@@ -403,6 +452,99 @@ export default function Home() {
   const [mobileView, setMobileView] = useState<"overview" | "detail">(
     "overview",
   );
+
+  // Đọc lại form và dữ liệu đã an sau khi trang được hydrate (an toàn với Next.js SSR).
+  useEffect(() => {
+    try {
+      const raw = window.localStorage.getItem(TUVI_STORAGE_KEY);
+      if (raw) {
+        const saved = JSON.parse(raw) as Partial<StoredChartSession>;
+        if (isBirthInput(saved.draft)) setDraft(saved.draft);
+        if (isBirthInput(saved.submitted)) {
+          // Nếu phiên bản thuật toán thay đổi, bỏ qua lá số lưu không còn hợp lệ.
+          try {
+            createTuViChart(saved.submitted);
+            setSubmitted(saved.submitted);
+          } catch {
+            // Giữ lá số mẫu để trang không bị lỗi.
+          }
+        }
+        if (typeof saved.dayText === "string") {
+          setDayText(numericText(saved.dayText, 2));
+        }
+        if (typeof saved.yearText === "string") {
+          setYearText(numericText(saved.yearText, 4));
+        }
+        if (typeof saved.viewYearText === "string") {
+          setViewYearText(numericText(saved.viewYearText, 4));
+        }
+        if (
+          saved.selected === null ||
+          (typeof saved.selected === "number" &&
+            Number.isInteger(saved.selected) &&
+            saved.selected >= 0 &&
+            saved.selected < 12)
+        ) {
+          setSelected(saved.selected);
+        }
+        if (typeof saved.showMain === "boolean") setShowMain(saved.showMain);
+        if (typeof saved.showExtra === "boolean") setShowExtra(saved.showExtra);
+        if (typeof saved.showCycles === "boolean")
+          setShowCycles(saved.showCycles);
+        if (typeof saved.showAnnual === "boolean")
+          setShowAnnual(saved.showAnnual);
+        if (["small", "medium", "large"].includes(saved.fontSize ?? "")) {
+          setFontSize(saved.fontSize!);
+        }
+        if (saved.mobileView === "overview" || saved.mobileView === "detail") {
+          setMobileView(saved.mobileView);
+        }
+      }
+    } catch {
+      // Private mode / trình duyệt chặn storage: website vẫn hoạt động bình thường.
+    } finally {
+      setStorageReady(true);
+    }
+  }, []);
+
+  // Lưu cả dữ liệu form đang gõ và lá số đã bấm an sao.
+  // Không lưu scrollRequest: reload không được tự cuộn xuống lá số.
+  useEffect(() => {
+    if (!storageReady) return;
+    const session: StoredChartSession = {
+      draft,
+      submitted,
+      dayText,
+      yearText,
+      viewYearText,
+      selected,
+      showMain,
+      showExtra,
+      showCycles,
+      showAnnual,
+      fontSize,
+      mobileView,
+    };
+    try {
+      window.localStorage.setItem(TUVI_STORAGE_KEY, JSON.stringify(session));
+    } catch {
+      // localStorage không khả dụng: không ngăn người dùng lập lá số.
+    }
+  }, [
+    storageReady,
+    draft,
+    submitted,
+    dayText,
+    yearText,
+    viewYearText,
+    selected,
+    showMain,
+    showExtra,
+    showCycles,
+    showAnnual,
+    fontSize,
+    mobileView,
+  ]);
 
   const result = useMemo(() => {
     try {
