@@ -542,6 +542,10 @@ export function createTuViChart(input: BirthInput): Chart {
   // Sao theo chi nam sinh.
   add(daoHoa(branchOfYear), "Đào Hoa", "good");
   add(horse(branchOfYear), "Thiên Mã", "neutral");
+  // Hoa Cái an theo tam hợp địa chi năm sinh: Thân/Tý/Thìn -> Thìn;
+  // Dần/Ngọ/Tuất -> Tuất; Tỵ/Dậu/Sửu -> Sửu; Hợi/Mão/Mùi -> Mùi.
+  // Hoa Cái luôn nằm sau Thiên Mã 2 cung theo chiều thuận.
+  add(mod(horse(branchOfYear) + 2), "Hoa Cái", "neutral");
   add(mod(3 - branchOfYear), "Hồng Loan", "good");
   add(mod(3 - branchOfYear + 6), "Thiên Hỷ", "good");
   add(kiepSat(branchOfYear), "Kiếp Sát", "bad");

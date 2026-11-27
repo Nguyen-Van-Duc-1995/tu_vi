@@ -1,0 +1,36 @@
+# An Sao Tử Vi Nam Phái
+
+> Công cụ lập lá số Tử Vi Đẩu Số Nam Phái
+> trực tuyến, hỗ trợ an sao, xác định cung Mệnh,
+> cung Thân, đại hạn và lưu niên.
+
+## Website
+
+- https://tuvi.softsama.com/
+
+## Features
+
+- Lập lá số Tử Vi Nam Phái trực tuyến.
+- An chính tinh và phụ tinh.
+- Xác định Miếu, Vượng, Đắc, Hãm.
+- Xác định 12 cung trên địa bàn cố định.
+- Xem tam hợp và xung chiếu.
+- Xác định đại hạn và lưu niên.
+- Hỗ trợ máy tính và điện thoại.
+
+## Topics
+
+- Tử Vi Đẩu Số
+- Tử Vi Nam Phái
+- An sao Tử Vi
+- Lập lá số Tử Vi
+- Chính tinh và phụ tinh
+- Đại hạn và lưu niên
+
+## Sitemap
+
+https://tuvi.softsama.com/sitemap.xml
+
+## Language
+
+Vietnamese (vi-VN)
