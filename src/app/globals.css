@@ -1662,11 +1662,11 @@ select:focus-visible,
     grid-template-rows: repeat(4, minmax(190px, auto)) !important;
     gap: 2px;
     border: 2px solid #111;
-    --type-branch: 17px;
-    --type-stem: 7px;
-    --type-house: 8px;
-    --type-main: 9.5px;
-    --type-extra: 8px;
+    --type-branch: 13.5px;
+    --type-stem: 8px;
+    --type-house: 9px;
+    --type-main: 10.5px;
+    --type-extra: 10.5px;
     --type-annual: 7.5px;
     --type-meta: 7px;
     --type-center-name: 16px;
