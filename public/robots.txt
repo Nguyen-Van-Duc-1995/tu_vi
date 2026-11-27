@@ -1,19 +1,27 @@
+# ==================================================
 # Default crawlers
+# ==================================================
 User-agent: *
 Allow: /
 
+# ==================================================
 # Google Search & AI
+# ==================================================
 User-agent: Googlebot
 Allow: /
 
 User-agent: Google-Extended
 Allow: /
 
+# ==================================================
 # Microsoft Bing & Copilot
+# ==================================================
 User-agent: Bingbot
 Allow: /
 
+# ==================================================
 # OpenAI & ChatGPT
+# ==================================================
 User-agent: OAI-SearchBot
 Allow: /
 
@@ -23,7 +31,9 @@ Allow: /
 User-agent: ChatGPT-User
 Allow: /
 
+# ==================================================
 # Anthropic Claude
+# ==================================================
 User-agent: ClaudeBot
 Allow: /
 
@@ -33,12 +43,70 @@ Allow: /
 User-agent: Claude-User
 Allow: /
 
+# ==================================================
 # Perplexity AI
+# ==================================================
 User-agent: PerplexityBot
 Allow: /
 
 User-agent: Perplexity-User
 Allow: /
 
+# ==================================================
+# Apple Search, Siri, Spotlight & Apple Intelligence
+# ==================================================
+User-agent: Applebot
+Allow: /
+
+User-agent: Applebot-Extended
+Allow: /
+
+# ==================================================
+# Yandex - Russia
+# ==================================================
+User-agent: YandexBot
+Allow: /
+
+User-agent: YandexComBot
+Allow: /
+
+# ==================================================
+# Baidu - China
+# ==================================================
+User-agent: Baiduspider
+Allow: /
+
+# ==================================================
+# Naver & Daum - South Korea
+# ==================================================
+User-agent: Yeti
+Allow: /
+
+User-agent: Daum
+Allow: /
+
+# ==================================================
+# Coc Coc - Vietnam
+# ==================================================
+User-agent: coccocbot-web
+Allow: /
+
+User-agent: coccocbot-image
+Allow: /
+
+# ==================================================
+# DuckDuckGo
+# ==================================================
+User-agent: DuckDuckBot
+Allow: /
+
+# ==================================================
+# Yahoo Search
+# ==================================================
+User-agent: Slurp
+Allow: /
+
+# ==================================================
 # Sitemap
+# ==================================================
 Sitemap: https://tuvi.softsama.com/sitemap.xml
