@@ -227,7 +227,7 @@ function StarGroup({
         >
           {star.name}
           {star.kind === "main" && star.brightness
-            ? `\u00a0(${star.brightness})`
+            ? `(${star.brightness})`
             : null}
         </span>
       ))}
